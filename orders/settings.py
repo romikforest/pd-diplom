@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'django_rest_passwordreset',
+    'nested_inline',
     'rest_auth.apps.RestAuthConfig',
     'core.apps.CoreConfig',
     'api.apps.ApiConfig',
@@ -151,7 +152,8 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
-
+        'rest_framework_yaml.renderers.YAMLRenderer',
+        'rest_framework_xml.renderers.XMLRenderer',
     ),
 
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -159,6 +161,15 @@ REST_FRAMEWORK = {
         # 'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ),
+
+    'DEFAULT_PARSER_CLASSES': (
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
+        'rest_framework_yaml.parsers.YAMLParser',
+        'rest_framework_xml.parsers.XMLParser',
+        'rest_framework.parsers.FileUploadParser',
+    )
 
 }
 

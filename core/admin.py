@@ -1,9 +1,11 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
+
+from nested_inline.admin import NestedStackedInline, NestedTabularInline, NestedModelAdmin
  
 from .models import Shop, Category, Product, ProductInfo, Order, OrderItem, Contact, \
-    ProductParameterName, ProductParameter, CommonParameterName, CommonParameter, \
+    Parameter, ProductParameter, \
     ADDRESS_ITEMS_LIMIT
 
 
@@ -20,29 +22,15 @@ class CategoryAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(CommonParameterName)
-class CommonParameterNameAdmin(admin.ModelAdmin):
+@admin.register(Parameter)
+class ParameterAdmin(admin.ModelAdmin):
     pass
 
-
-@admin.register(ProductParameterName)
-class ProductParameterNameAdmin(admin.ModelAdmin):
-    pass
-
-
-# @admin.register(ProductParameter)
-# class ProductParameterAdmin(admin.ModelAdmin):
-#     pass
-
-class CommonParameterInline(admin.TabularInline):
-    model = CommonParameter
-    extra = 0
-
-class ProductParameterInline(admin.TabularInline):
+class ProductParameterInline(NestedTabularInline):
     model = ProductParameter
     extra = 0
 
-class ProductInfoInline(admin.StackedInline): #
+class ProductInfoInline(NestedStackedInline):
     model = ProductInfo
     extra = 0
     inlines = (ProductParameterInline, )
@@ -54,8 +42,8 @@ class ProductInfoAdmin(admin.ModelAdmin):
 
 
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
-    inlines = (CommonParameterInline, ProductInfoInline)
+class ProductAdmin(NestedModelAdmin):
+    inlines = (ProductInfoInline, )
 
 
 class OrderItemInline(admin.TabularInline):
