@@ -1,2 +1,10 @@
-Django==2.0.5
-pytz==2018.5
+Babel==2.7.0
+certifi==2019.6.16
+Django==2.2.4
+django-phonenumber-field==3.0.1
+django-rest-passwordreset==1.0.0
+djangorestframework==3.10.2
+phonenumbers==8.10.17
+pytz==2019.2
+sqlparse==0.3.0
+wincertstore==0.2
