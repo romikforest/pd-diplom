@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import Group
@@ -6,19 +7,16 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django_rest_passwordreset.tokens import get_token_generator
 
+from phonenumber_field.modelfields import PhoneNumberField
+
+ADDRESS_ITEMS_LIMIT = 5
+
 USER_TYPE_CHOICES = (
     ('shop', _('Магазин')),
     ('buyer', _('Покупатель')),
 
 )
 
-# class ProxyUser(User):
-
-#      class Meta:
-#         app_label = 'auth'
-#         proxy = True
-#         verbose_name = _('Пользователь')
-#         verbose_name_plural = _('Пользователи')
 
 class Group(Group):
     class Meta:
@@ -48,7 +46,6 @@ class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', False)
         extra_fields.setdefault('is_superuser', False)
-        extra_fields.setdefault('is_active', True)
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password, **extra_fields):
@@ -104,6 +101,7 @@ class User(AbstractUser):
 
 
 class ConfirmEmailToken(models.Model):
+    
     class Meta:
         verbose_name = _('Токен подтверждения Email')
         verbose_name_plural = _('Токены подтверждения Email')
@@ -117,12 +115,12 @@ class ConfirmEmailToken(models.Model):
         User,
         related_name='confirm_email_tokens',
         on_delete=models.CASCADE,
-        verbose_name=_('The User which is associated to this password reset token')
+        verbose_name=_('Пользователь, связанный с данным токеном сброса пароля')
     )
 
     created_at = models.DateTimeField(
         auto_now_add=True,
-        verbose_name=_('When was this token generated')
+        verbose_name=_('Время создания токена')
     )
 
     # Key field, though it is not the primary key of the model
@@ -139,4 +137,35 @@ class ConfirmEmailToken(models.Model):
         return super(ConfirmEmailToken, self).save(*args, **kwargs)
 
     def __str__(self):
-        return _('Password reset token for user {user}').format(user=self.user)
+        return _('Токен сброса пароля для пользователя {}').format(self.user)
+
+
+class Contact(models.Model):
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Пользователь'), related_name='contacts',
+                             on_delete=models.CASCADE)
+
+    person = models.CharField(max_length=50, verbose_name=_('Контактное лицо'), blank=True, help_text=_('Контактное лицо'))
+
+    phone = PhoneNumberField(null=True, blank=True, verbose_name=_('Телефон'), help_text=_('Телефон'))
+
+    city = models.CharField(max_length=50, verbose_name=_('Город'), blank=True)
+    street = models.CharField(max_length=100, verbose_name=_('Улица'), blank=True)
+    house = models.CharField(max_length=15, verbose_name=_('Дом'), blank=True)
+    structure = models.CharField(max_length=15, verbose_name=_('Корпус'), blank=True)
+    building = models.CharField(max_length=15, verbose_name=_('Строение'), blank=True)
+    apartment = models.CharField(max_length=15, verbose_name=_('Квартира'), blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.user.contacts.count() < ADDRESS_ITEMS_LIMIT or self.user.contacts.filter(id=self.id).exists():
+            super(Contact, self).save(*args, **kwargs)
+        else:
+            raise Exception(f'There are already {ADDRESS_ITEMS_LIMIT} contacts. No more are allowed.')
+
+    class Meta:
+        verbose_name = _('Контакт')
+        verbose_name_plural = _('Отдельные контакты')
+
+    def __str__(self):
+        return f'{self.user}: {self.person} / {self.phone} / {self.city} {self.street} {self.house} {self.structure} {self.building} {self.apartment}'
+

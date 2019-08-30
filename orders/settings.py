@@ -61,7 +61,7 @@ ROOT_URLCONF = 'orders.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [ os.path.join(BASE_DIR, 'templates') ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -168,8 +168,10 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.MultiPartParser',
         'rest_framework_yaml.parsers.YAMLParser',
         'rest_framework_xml.parsers.XMLParser',
-        'rest_framework.parsers.FileUploadParser',
-    )
+        # 'rest_framework.parsers.FileUploadParser',
+    ),
+
+    'EXCEPTION_HANDLER': 'api.utils.custom_exception_handler',
 
 }
 

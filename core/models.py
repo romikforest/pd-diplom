@@ -1,11 +1,8 @@
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from phonenumber_field.modelfields import PhoneNumberField
-
-
-ADDRESS_ITEMS_LIMIT = 5
 
 STATE_CHOICES = (
     ('basket', _('Статус корзины')),
@@ -77,8 +74,8 @@ class ProductInfo(models.Model):
     shop = models.ForeignKey(Shop, verbose_name=_('Магазин'), related_name='product_infos', blank=True,
                              on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(verbose_name=_('Количество'))
-    price = models.DecimalField(max_digits=20, decimal_places=2, verbose_name=_('Цена'))
-    price_rrc = models.DecimalField(max_digits=20, decimal_places=2, verbose_name=_('Рекомендуемая розничная цена'))
+    price = models.DecimalField(max_digits=20, decimal_places=2, verbose_name=_('Цена'), validators=[MinValueValidator(0)])
+    price_rrc = models.DecimalField(max_digits=20, decimal_places=2, verbose_name=_('Рекомендуемая розничная цена'), validators=[MinValueValidator(0)])
 
     class Meta:
         verbose_name = _('Информация о продукте')
@@ -172,35 +169,3 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f'{self.order} / {self.product_info} / {self.quantity}'
-
-
-class Contact(models.Model):
-
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Пользователь'), related_name='contacts',
-                             on_delete=models.CASCADE)
-
-    person = models.CharField(max_length=50, verbose_name=_('Контактное лицо'))
-
-    phone = PhoneNumberField(null=True, blank=True, verbose_name=_('Телефон'),)
-
-    city = models.CharField(max_length=50, verbose_name=_('Город'), blank=True)
-    street = models.CharField(max_length=100, verbose_name=_('Улица'), blank=True)
-    house = models.CharField(max_length=15, verbose_name=_('Дом'), blank=True)
-    structure = models.CharField(max_length=15, verbose_name=_('Корпус'), blank=True)
-    building = models.CharField(max_length=15, verbose_name=_('Строение'), blank=True)
-    apartment = models.CharField(max_length=15, verbose_name=_('Квартира'), blank=True)
-
-    def save(self, *args, **kwargs):
-        if self.user.contacts.count() < ADDRESS_ITEMS_LIMIT:
-            super(Contact, self).save(*args, **kwargs)
-        else:
-            raise Exception(f'There are already {ADDRESS_ITEMS_LIMIT} contacts. No more are allowed.')
-
-    class Meta:
-        verbose_name = _('Контакт')
-        verbose_name_plural = _('Отдельные контакты')
-
-    def __str__(self):
-        return f'{self.user}: {self.person} / {self.phone} / {self.city} {self.street} {self.house} {self.structure} {self.building} {self.apartment}'
-
-

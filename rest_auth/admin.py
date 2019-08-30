@@ -4,7 +4,12 @@ from django.contrib.auth.admin import UserAdmin, GroupAdmin
 
 from .models import Group as AuthGroup
 from .models import User as AuthUser
-from .models import ConfirmEmailToken
+from .models import ConfirmEmailToken, Contact, ADDRESS_ITEMS_LIMIT
+
+class ContactInline(admin.StackedInline):
+    model = Contact
+    extra = 0
+    max_num = ADDRESS_ITEMS_LIMIT
 
 
 @admin.register(AuthUser)
@@ -23,6 +28,7 @@ class CustomUserAdmin(UserAdmin):
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
     list_display = ('email', 'first_name', 'last_name', 'is_staff')
+    inlines = (ContactInline, )
 
 
 class GroupAdmin(GroupAdmin):

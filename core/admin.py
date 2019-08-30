@@ -1,12 +1,9 @@
 from django.contrib import admin
-from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 
 from nested_inline.admin import NestedStackedInline, NestedTabularInline, NestedModelAdmin
  
-from .models import Shop, Category, Product, ProductInfo, Order, OrderItem, Contact, \
-    Parameter, ProductParameter, \
-    ADDRESS_ITEMS_LIMIT
+from .models import Shop, Category, Product, ProductInfo, Order, OrderItem, Parameter, ProductParameter
 
 
 admin.site.site_header = 'Администрирование магазина'
@@ -36,9 +33,9 @@ class ProductInfoInline(NestedStackedInline):
     inlines = (ProductParameterInline, )
 
 
-@admin.register(ProductInfo)
-class ProductInfoAdmin(admin.ModelAdmin):
-    inlines = (ProductParameterInline, )
+# @admin.register(ProductInfo)
+# class ProductInfoAdmin(admin.ModelAdmin):
+#     inlines = (ProductParameterInline, )
 
 
 @admin.register(Product)
@@ -55,26 +52,5 @@ class OrderItemInline(admin.TabularInline):
 class OrderAdmin(admin.ModelAdmin):
     inlines = (OrderItemInline, )
 
-
-class ContactInline(admin.StackedInline):
-    model = Contact
-    extra = 0
-    max_num = ADDRESS_ITEMS_LIMIT
-
-
-class ContactProxy(get_user_model()):
-
-    class Meta:
-        proxy = True
-        verbose_name = _('Контакты пользователя')
-        verbose_name_plural = _('Контакты пользователей')
-
-
-@admin.register(ContactProxy)
-class ContactAdmin(admin.ModelAdmin):
-    fieldsets = (
-         (None, {'fields': tuple()}),
-     )
-    inlines = (ContactInline, )
 
 
