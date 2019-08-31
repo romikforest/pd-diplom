@@ -12,6 +12,7 @@ from django.db import transaction
 from django.db.models import Q
 # from django.db import IntegrityError
 # from django.db.models import Q, Sum, F
+from django.urls import resolve
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as t
 from django.views.decorators.cache import cache_page, never_cache
@@ -76,21 +77,22 @@ def load_xml(stream):
 
 @cache_page(settings.CAHCE_TIMES['ROOT_API'])
 @api_view(['GET'])
-def api_root(request, format=None):
+def api_root(request, *args, format=None, **kwargs):
+    app_name = resolve(request.path).app_name 
     return Response({
-        'partner/update': reverse('api_v1:partner-update', request=request, format=format),
-        'user/login': reverse('api_v1:user-login', request=request, format=format),
-        'user/register': reverse('api_v1:user-register', request=request, format=format),
-        'user/register/confirm': reverse('api_v1:user-register-confirm', request=request, format=format),
-        'user/password_reset': reverse('api_v1:password-reset', request=request, format=format),
-        'user/password_reset/confirm': reverse('api_v1:password-reset-confirm', request=request, format=format),
-        'user/details': reverse('api_v1:user-details', request=request, format=format),
-        'categories': reverse('api_v1:categories', request=request, format=format),
-        'user/contact': reverse('api_v1:user-contact', request=request, format=format),
-        'shops': reverse('api_v1:shops', request=request, format=format),
-        'products': reverse('api_v1:products', request=request, format=format),
-        'docs': reverse('api_v1:openapi-schema', request=request, format=format),
-})
+        'partner/update': reverse(f'{app_name}:partner-update', request=request, format=format),
+        'user/login': reverse(f'{app_name}:user-login', request=request, format=format),
+        'user/register': reverse(f'{app_name}:user-register', request=request, format=format),
+        'user/register/confirm': reverse(f'{app_name}:user-register-confirm', request=request, format=format),
+        'user/password_reset': reverse(f'{app_name}:password-reset', request=request, format=format),
+        'user/password_reset/confirm': reverse(f'{app_name}:password-reset-confirm', request=request, format=format),
+        'user/details': reverse(f'{app_name}:user-details', request=request, format=format),
+        'categories': reverse(f'{app_name}:categories', request=request, format=format),
+        'user/contact': reverse(f'{app_name}:user-contact', request=request, format=format),
+        'shops': reverse(f'{app_name}:shops', request=request, format=format),
+        'products': reverse(f'{app_name}:products', request=request, format=format),
+        'docs': reverse(f'{app_name}:openapi-schema', request=request, format=format),
+    })
 
 
 class PartnerUpdate(APIView):

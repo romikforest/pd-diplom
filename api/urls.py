@@ -16,7 +16,7 @@ from .views import PartnerUpdate, LoginAccount, RegisterAccount, ConfirmAccount,
 #     BasketView, \
 #     OrderView, PartnerState, PartnerOrders
 
-app_name = 'api_v1'
+app_name = 'api'
 
 openapi_view = get_schema_view(title='Shop Integrator API', description='API for the shop Integrator ...', urlconf='api.urls')
 # openapi_view = get_schema_view(title='Shop Integrator API', description='API for the shop Integrator ...')
@@ -35,27 +35,16 @@ urlpatterns = [
     path('shops/', cache_page(settings.CAHCE_TIMES['SHOPS'])(ShopView.as_view()), name='shops'),
     path('products/', ProductInfoView.as_view(), name='products'), # default caching
 
-    path('docs/', openapi_view, name='openapi-schema'),
+    path('docs/', cache_page(settings.CAHCE_TIMES['OPENAPI'])(openapi_view), name='openapi-schema'),
     # path('core-docs', include_docs_urls(title='Shop Integrator API')),
-    path('swagger-ui/', TemplateView.as_view(
+    path('swagger-ui/', cache_page(settings.CAHCE_TIMES['SWAGGER'])(TemplateView.as_view(
         template_name='api/swagger-ui.html',
-        extra_context={'schema_url': 'api_v1:openapi-schema'}
-    ), name='swagger-ui'),
-    path('redoc/', TemplateView.as_view(
+        extra_context={'schema_url': f'{app_name}:openapi-schema'}
+    )), name='swagger-ui'),
+    path('redoc/', cache_page(settings.CAHCE_TIMES['REDOC'])(TemplateView.as_view(
         template_name='api/redoc.html',
-        extra_context={'schema_url':'api_v1:openapi-schema'}
-    ), name='redoc'),
-
-    # path('docs', cache_page(settings.CAHCE_TIMES['OPENAPI'])(openapi_view), name='openapi-schema'),
-    # # path('core-docs', include_docs_urls(title='Shop Integrator API')),
-    # path('swagger-ui/', cache_page(settings.CAHCE_TIMES['SWAGGER'])(TemplateView.as_view(
-    #     template_name='api/swagger-ui.html',
-    #     extra_context={'schema_url': 'api_v1:openapi-schema'}
-    # )), name='swagger-ui'),
-    # path('redoc/', cache_page(settings.CAHCE_TIMES['REDOC'])(TemplateView.as_view(
-    #     template_name='api/redoc.html',
-    #     extra_context={'schema_url':'api_v1:openapi-schema'}
-    # )), name='redoc'),
+        extra_context={'schema_url': f'{app_name}:openapi-schema'}
+    )), name='redoc'),
     
 
     # path('partner/state', PartnerState.as_view(), name='partner-state'),
