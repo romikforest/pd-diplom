@@ -1,4 +1,5 @@
 from rest_framework.negotiation import DefaultContentNegotiation
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from rest_framework.views import exception_handler
 
 
@@ -40,3 +41,17 @@ class AcceptAsContentTypeNegotiation(DefaultContentNegotiation):
 
         return get_list(request.META.get('HTTP_ACCEPT')) or (get_list(request.content_type) + ['*/*'])
 
+
+# Контроль количества запросов:
+
+class BurstRateThrottle(UserRateThrottle):
+    scope = 'burst'
+
+class SustainedRateThrottle(UserRateThrottle):
+    scope = 'sustained'
+
+class AnonBurstRateThrottle(AnonRateThrottle):
+    scope = 'anon_burst'
+
+class AnonSustainedRateThrottle(AnonRateThrottle):
+    scope = 'anon_sustained'

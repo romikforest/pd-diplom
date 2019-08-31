@@ -175,5 +175,21 @@ REST_FRAMEWORK = {
 
     'DEFAULT_CONTENT_NEGOTIATION_CLASS': 'api.utils.AcceptAsContentTypeNegotiation',
 
+    'DEFAULT_THROTTLE_CLASSES': [
+        'api.utils.BurstRateThrottle',
+        'api.utils.SustainedRateThrottle',
+        'api.utils.AnonBurstRateThrottle',
+        'api.utils.AnonSustainedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'burst': '60/min',
+        'sustained': '1000/day',
+        'anon_burst': '30/min',
+        'anon_sustained': '500/day',
+        'categories': '1000/day',
+        'shops': '1000/day',
+        'partner_update': '5/day',
+    }
+
 }
 

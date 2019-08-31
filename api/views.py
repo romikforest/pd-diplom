@@ -93,6 +93,8 @@ class PartnerUpdate(APIView):
     Класс для обновления прайса от поставщика
     """
 
+    throttle_scope = 'partner_update'
+
     def post(self, request, *args, **kwargs):
  
         if not request.user.is_authenticated:
@@ -356,6 +358,8 @@ class CategoryView(ListAPIView):
     Класс для просмотра категорий
     """
 
+    throttle_scope = 'categories'
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
@@ -480,6 +484,8 @@ class ShopView(ListAPIView):
     """
     Класс для просмотра списка магазинов
     """
+
+    throttle_scope = 'shops'
 
     queryset = Shop.objects.filter(state=True)
     serializer_class = ShopSerializer
