@@ -31,6 +31,9 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_auth.apps.RestAuthConfig',
+    'core.apps.CoreConfig',
+    'api.apps.ApiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,9 +44,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django_rest_passwordreset',
     'nested_inline',
-    'rest_auth.apps.RestAuthConfig',
-    'core.apps.CoreConfig',
-    'api.apps.ApiConfig',
 ]
 
 MIDDLEWARE = [
@@ -172,6 +172,8 @@ REST_FRAMEWORK = {
     ),
 
     'EXCEPTION_HANDLER': 'api.utils.custom_exception_handler',
+
+    'DEFAULT_CONTENT_NEGOTIATION_CLASS': 'api.utils.AcceptAsContentTypeNegotiation',
 
 }
 
