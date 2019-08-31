@@ -47,6 +47,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -54,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
 ROOT_URLCONF = 'orders.urls'
@@ -180,6 +182,7 @@ REST_FRAMEWORK = {
         'api.utils.SustainedRateThrottle',
         'api.utils.AnonBurstRateThrottle',
         'api.utils.AnonSustainedRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
         'burst': '60/min',
@@ -191,5 +194,20 @@ REST_FRAMEWORK = {
         'partner_update': '5/day',
     }
 
+}
+
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+#     }
+# }
+
+CAHCE_TIMES = {
+    'ROOT_API': 60*60*24,
+    'SHOPS': 60*5,
+    'CATEGORIES': 60*5,
+    'OPENAPI': 60*60*24,
+    'SWAGGER': 60*60*24,
+    'REDOC': 60*60*24,
 }
 

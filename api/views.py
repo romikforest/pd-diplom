@@ -1,6 +1,7 @@
 from decimal import Decimal
 # from distutils.util import strtobool
 
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -11,7 +12,10 @@ from django.db import transaction
 from django.db.models import Q
 # from django.db import IntegrityError
 # from django.db.models import Q, Sum, F
+from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as t
+from django.views.decorators.cache import cache_page, never_cache
+from django.views.decorators.vary import vary_on_headers
 import os
 from requests import get
 from rest_framework.authtoken.models import Token
@@ -70,6 +74,7 @@ def load_xml(stream):
 
     return XMLParser().parse(ContentFile(stream))
 
+@cache_page(settings.CAHCE_TIMES['ROOT_API'])
 @api_view(['GET'])
 def api_root(request, format=None):
     return Response({
@@ -94,11 +99,10 @@ class PartnerUpdate(APIView):
     """
 
     throttle_scope = 'partner_update'
+    permission_classes = [IsAuthenticated]
 
+    @method_decorator(never_cache)
     def post(self, request, *args, **kwargs):
- 
-        if not request.user.is_authenticated:
-            return Response({'Status': False, 'Error': t('Необходима авторизация')}, status=403)
 
         if request.user.type != 'shop':
             return Response({'Status': False, 'Error': t('Только для магазинов')}, status=403)
@@ -229,6 +233,7 @@ class LoginAccount(APIView):
     Класс для авторизации пользователей
     """
 
+    @method_decorator(never_cache)
     def post(self, request, *args, **kwargs):
 
         if not {'email', 'password'}.issubset(request.data):
@@ -250,6 +255,7 @@ class RegisterAccount(APIView):
     Для регистрации покупателей
     """
 
+    @method_decorator(never_cache)
     def post(self, request, *args, **kwargs):
 
         # проверяем обязательные аргументы
@@ -289,6 +295,7 @@ class ConfirmAccount(APIView):
     Класс для подтверждения почтового адреса
     """
 
+    @method_decorator(never_cache)
     def post(self, request, *args, **kwargs):
 
         # проверяем обязательные аргументы
@@ -311,18 +318,17 @@ class AccountDetails(APIView):
     Класс для работы с данными пользователя
     """
 
-    # получить данные
-    def get(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return Response({'Status': False, 'Error': t('Необходима авторизация')}, status=403)
+    permission_classes = [IsAuthenticated]
 
+    # получить данные
+    @method_decorator(never_cache)
+    def get(self, request, *args, **kwargs):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
     # Редактирование методом PUT
+    @method_decorator(never_cache)
     def put(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return Response({'Status': False, 'Error': t('Необходима авторизация')}, status=403)
 
         # проверяем обязательные аргументы
         if 'password' in request.data:
@@ -372,17 +378,15 @@ class ContactView(APIView):
     permission_classes = [IsAuthenticated]
 
     # получить мои контакты
+    @method_decorator(vary_on_headers('Authorization'))
     def get(self, request, *args, **kwargs):
-        # if not request.user.is_authenticated:
-        #     return Response({'Status': False, 'Error': t('Необходима авторизация')}, status=403)
         contact = Contact.objects.filter(user_id=request.user.id)
         serializer = SeparateContactSerializer(contact, many=True)
         return Response(serializer.data)
 
     # добавить новый контакт
+    @method_decorator(never_cache)
     def post(self, request, *args, **kwargs):
-        # if not request.user.is_authenticated:
-        #     return Response({'Status': False, 'Error': t('Необходима авторизация')}, status=403)
 
         if not 'phone' in request.data and not all([x in request.data for x in ('city', 'street', 'house')]):
             return Response({'Status': False, 'Errors': t('Не указаны все необходимые аргументы')})
@@ -402,9 +406,8 @@ class ContactView(APIView):
         return Response({'Status': True, 'data': serializer.data}, status=201)
         
     # удалить контакт
+    @method_decorator(never_cache)
     def delete(self, request, *args, **kwargs):
-        # if not request.user.is_authenticated:
-        #     return Response({'Status': False, 'Error': t('Необходима авторизация')}, status=403)
 
         items_sting = request.data.get('items')
         if not items_sting:
@@ -432,9 +435,8 @@ class ContactView(APIView):
         return Response({'Status': True, 'Deleted': deleted_count})
 
     # редактировать контакт (полностью)
+    @method_decorator(never_cache)
     def put(self, request, *args, **kwargs):
-        # if not request.user.is_authenticated:
-        #     return Response({'Status': False, 'Error': t('Необходима авторизация')}, status=403)
 
         if 'id' not in request.data or \
             (not 'phone' in request.data and not all([x in request.data for x in ('city', 'street', 'house')])):
@@ -458,9 +460,8 @@ class ContactView(APIView):
         return Response({'Status': True})
 
     # редактировать контакт (частично)
+    @method_decorator(never_cache)
     def patch(self, request, *args, **kwargs):
-        # if not request.user.is_authenticated:
-        #     return Response({'Status': False, 'Error': t('Необходима авторизация')}, status=403)
 
         if 'id' not in request.data:
             return Response({'Status': False, 'Errors': t('Не указаны все необходимые аргументы')})
