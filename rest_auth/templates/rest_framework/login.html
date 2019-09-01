@@ -1,0 +1,10 @@
+{% extends "rest_framework/login.html" %}
+{% load static %}
+
+{% block bootstrap_theme %}
+    <link rel="stylesheet" href="{% static 'css/cerulean.min.css' %}" type="text/css">
+{% endblock %}
+
+{% block branding %}
+    <h3 style="margin: 0 0 20px;">Магазинчик!</h3>
+{% endblock %}

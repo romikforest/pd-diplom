@@ -4,6 +4,10 @@ from rest_framework import serializers
 from rest_auth.models import User, Contact
 from core.models import Category, Shop, ProductInfo, Product, ProductParameter, OrderItem, Order
 
+class PurtnerUpdateSerializer(serializers.Serializer):
+    url = serializers.URLField(required=False)
+    file = serializers.FileField(required=False)
+
 
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:
@@ -70,10 +74,16 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
-class CategorySerializer(serializers.ModelSerializer):
+class CategorySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Category
-        fields = ('id', 'name',)
+        fields = ('url', 'id', 'name',)
+        read_only_fields = ('id',)
+
+class CategoryDetailSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Category
+        fields = ('url', 'id', 'name', 'shops')
         read_only_fields = ('id',)
 
 
