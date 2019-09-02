@@ -23,11 +23,12 @@ from rest_framework.views import APIView
 
 from core.models import Category, Shop
 from core.partner_info_loader import load_partner_info
-from core.utils import SelectableSerializersMixin, ResponseBadRequest, ResponseForbidden, IsShop
+from core.utils import SelectableSerializersMixin, IsShop, \
+    ResponseOK, ResponseBadRequest, ResponseForbidden
 from rest_auth.models import ConfirmEmailToken, Contact, ADDRESS_ITEMS_LIMIT
 from .serializers import UserSerializer, CategorySerializer, CategoryDetailSerializer, \
     SeparateContactSerializer, PartnerUpdateSerializer, \
-    ShopSerializer, ProductInfoSerializer
+    ShopSerializer, ProductInfoSerializer, UserLoginSerializer
 # from backend.models import Order, OrderItem
 # from backend.serializers import  \
 #     OrderItemSerializer, OrderSerializer
@@ -82,40 +83,34 @@ class PartnerViewSet(viewsets.GenericViewSet):
         return load_partner_info(url, file_obj, request.user.id)
 
 
-@cache_page(settings.CAHCE_TIMES['ROOT_API'])
-@api_view(['GET'])
-def api_root(request, *args, format=None, **kwargs):
-    app_name = resolve(request.path).app_name 
-    return Response({
-        'partner/update': reverse(f'{app_name}:partner-update', request=request, format=format),
-        'user/login': reverse(f'{app_name}:user-login', request=request, format=format),
-        'user/register': reverse(f'{app_name}:user-register', request=request, format=format),
-        'user/register/confirm': reverse(f'{app_name}:user-register-confirm', request=request, format=format),
-        'user/password_reset': reverse(f'{app_name}:password-reset', request=request, format=format),
-        'user/password_reset/confirm': reverse(f'{app_name}:password-reset-confirm', request=request, format=format),
-        'user/details': reverse(f'{app_name}:user-details', request=request, format=format),
-        'categories': reverse(f'{app_name}:categories', request=request, format=format),
-        'user/contact': reverse(f'{app_name}:user-contact', request=request, format=format),
-        'shops': reverse(f'{app_name}:shops', request=request, format=format),
-        'products': reverse(f'{app_name}:products', request=request, format=format),
-        'docs': reverse(f'{app_name}:openapi-schema', request=request, format=format),
-        'swagger-ui': reverse(f'{app_name}:swagger-ui', request=request, format=format),
-        'redoc': reverse(f'{app_name}:redoc', request=request, format=format),
-    })
-
-
-class LoginAccount(APIView):
+class UserViewSet(viewsets.GenericViewSet):
     """
-    Класс для авторизации пользователей
+    Класс для работы с пользователями:
+    вход, регистрация, сброс пароля, просмотр контактов и т.п.
     """
 
+    serializer_class = UserLoginSerializer
+    permission_classes = tuple()
+    throttle_scope = 'user'
+
+
+    @action(detail=False, methods=('post',), name='Get authorization token',
+            url_name='login', url_path='login'
+            )
     @method_decorator(never_cache)
-    def post(self, request, *args, **kwargs):
+    def login(self, request, *args, **kwargs):
+        """
+        Запрос токена для авторизации 
+        """
 
-        if not {'email', 'password'}.issubset(request.data):
+        serializer = UserLoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.data
+
+        if not {'email', 'password'}.issubset(data):
             return Response({'Status': False, 'Errors': t('Не указаны все необходимые аргументы')})
 
-        user = authenticate(request, username=request.data['email'], password=request.data['password'])
+        user = authenticate(request, username=data['email'], password=data['password'])
 
         if user is None:
             return Response({'Status': False, 'Errors': t('Не удалось авторизовать')})
@@ -123,7 +118,7 @@ class LoginAccount(APIView):
         if user.is_active:
             token, _ = Token.objects.get_or_create(user=user)
 
-        return Response({'Status': True, 'Token': token.key})       
+        return ResponseOK(token=token.key)       
 
 
 class RegisterAccount(APIView):

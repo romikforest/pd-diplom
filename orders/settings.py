@@ -207,6 +207,7 @@ REST_FRAMEWORK = {
         'categories': '1000/day',
         'shops': '1000/day',
         'partner_update': '5/day',
+        'user': '200/day',
     }
 
 }

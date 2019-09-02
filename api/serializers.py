@@ -1,12 +1,21 @@
+from django.utils.translation import gettext_lazy as t
 from rest_framework import serializers
-
-
 from rest_auth.models import User, Contact
 from core.models import Category, Shop, ProductInfo, Product, ProductParameter, OrderItem, Order
 
-class PartnerUpdateSerializer(serializers.Serializer):
-    url = serializers.URLField(required=False)
-    file = serializers.FileField(required=False)
+
+class DefaultSerializer(serializers.Serializer):
+    Error = serializers.SerializerMethodField(read_only=True, help_text=t('Error message(s)'), label=t('Error'))
+    Status = serializers.SerializerMethodField(read_only=True, help_text=t('Http Status code'), label=t('Status code'))
+
+class DefaultModelSerializer(serializers.ModelSerializer):
+    Error = serializers.SerializerMethodField(read_only=True, help_text=t('Error message(s)'), label=t('Error'))
+    Status = serializers.SerializerMethodField(read_only=True, help_text=t('Http Status code'), label=t('Status code'))
+
+
+class PartnerUpdateSerializer(DefaultSerializer):
+    url = serializers.URLField(required=False, help_text=t('Путь к загружаемому файлу'), label=t('URL path'))
+    file = serializers.FileField(required=False, help_text=t('Файл, передаваемый через http'), label=t('File field'))
 
     class Meta:
         write_only_fields = ('url', 'file', )
@@ -35,6 +44,14 @@ class SeparateContactSerializer(serializers.ModelSerializer):
             'building': {'default': ''},
             'apartment': {'default': ''},
         }
+
+
+class UserLoginSerializer(DefaultSerializer):
+    email = serializers.EmailField(required=True, allow_blank=False, label=t('Email'), help_text=t('Iput email'))
+    password = serializers.CharField(required=True, allow_blank=False, style={'input_type': 'password'}, label=t('Password'), help_text=t('Iput password'))
+    password2 = serializers.CharField(required=True, allow_blank=False, style={'input_type': 'password'}, label=t('Repeat Password'), help_text=t('Iput password again'))
+    token = serializers.SerializerMethodField(read_only=True)
+
 
 
 class UserSerializer(serializers.ModelSerializer):
