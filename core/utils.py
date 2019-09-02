@@ -7,12 +7,10 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as t
 from rest_framework import status as http_status
 from rest_framework import routers
-from rest_framework.negotiation import DefaultContentNegotiation
 from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from rest_framework.schemas.openapi import AutoSchema
 from rest_framework.status import is_success
-from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from rest_framework.views import exception_handler
 
 
@@ -130,45 +128,6 @@ def custom_exception_handler(exc, context):
             del response.data['detail']
 
     return response
-
-
-class AcceptAsContentTypeNegotiation(DefaultContentNegotiation):
-    """
-    Класс устанавливает формат ответа по умолчанию
-    такой же, как формат запроса
-
-    """
-
-    def get_accept_list(self, request):
- 
-        header = request.META.get('HTTP_ACCEPT', '')
-        accept_set = { x.strip() for x in header.split(',') if x }
-        content_set = { x.strip() for x in request.content_type.split(',') if x }
-        common_set = accept_set & content_set
-        all_set = {'*/*'}
-        if not accept_set or not (accept_set - all_set):
-            result = content_set | all_set
-        elif common_set and common_set - all_set:
-            result = common_set | all_set
-        else:
-            result = accept_set
-
-        return result
-
-
-# Контроль количества запросов:
-
-class BurstRateThrottle(UserRateThrottle):
-    scope = 'burst'
-
-class SustainedRateThrottle(UserRateThrottle):
-    scope = 'sustained'
-
-class AnonBurstRateThrottle(AnonRateThrottle):
-    scope = 'anon_burst'
-
-class AnonSustainedRateThrottle(AnonRateThrottle):
-    scope = 'anon_sustained'
 
 
 # Классы проверки прав доступа:
@@ -290,11 +249,11 @@ class ResponsesSchema(AutoSchema):
     """
 
     standard_success_properties = {
-        'Status': {'type': 'string', 'readOnly': True, 'description': 'Http Status code'},
+        'Status': {'type': 'boolean', 'readOnly': True, 'description': 'Http Status code'},
     }
 
     standard_error_properties = {
-        'Status': {'type': 'string', 'readOnly': True, 'description': 'Http Status code'},
+        'Status': {'type': 'boolean', 'readOnly': True, 'description': 'Http Status code'},
         'Error': {'type': 'string', 'readOnly': True, 'description': 'Error message(s)'},
     }
 
@@ -314,6 +273,9 @@ class ResponsesSchema(AutoSchema):
             if not is_dict(value) or not 'readOnly' in value:
                 continue
             if key != 'Error' and value['readOnly'] == True:
+                if key == 'Status':
+                    value = deepcopy(value)
+                    value['type'] = 'boolean'
                 properties[key] = value
 
         return properties
@@ -327,6 +289,11 @@ class ResponsesSchema(AutoSchema):
         for key, value in content.items():
             if not is_dict(value):
                 continue
+            if 'readOnly' not in value or not value['readOnly']:
+                value = deepcopy(value)
+                value['type'] = 'string'
+                if 'format' in value:
+                    del value['format']
             properties[key] = value
 
         return properties
@@ -405,7 +372,7 @@ class SimpleActionSchema(ResponsesSchema):
     }
  
 
- class ResponsesNoInputSchema(ResponsesSchema):
+class ResponsesNoInputSchema(ResponsesSchema):
     """
     Базовый класс схемы openapi не копирующей входные параметры для валидации
     """

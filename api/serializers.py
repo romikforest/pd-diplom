@@ -99,6 +99,7 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
         model = Category
         fields = ('url', 'id', 'name',)
         read_only_fields = ('id',)
+        
 
 class CategoryDetailSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

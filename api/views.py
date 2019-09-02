@@ -33,7 +33,7 @@ from .serializers import UserSerializer, CategorySerializer, CategoryDetailSeria
 # from backend.serializers import  \
 #     OrderItemSerializer, OrderSerializer
 
-from .schemas import PartnerUpdateSchema
+from .schemas import PartnerUpdateSchema, UserLoginSchema
 from .signals import new_user_registered, new_order
 
 
@@ -95,7 +95,8 @@ class UserViewSet(viewsets.GenericViewSet):
 
 
     @action(detail=False, methods=('post',), name='Get authorization token',
-            url_name='login', url_path='login'
+            url_name='login', url_path='login',
+            schema=UserLoginSchema()
             )
     @method_decorator(never_cache)
     def login(self, request, *args, **kwargs):
