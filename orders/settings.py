@@ -187,7 +187,7 @@ REST_FRAMEWORK = {
         # 'rest_framework.parsers.FileUploadParser',
     ),
 
-    'EXCEPTION_HANDLER': 'core.utils.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler',
 
     'DEFAULT_CONTENT_NEGOTIATION_CLASS': 'api.utils.AcceptAsContentTypeNegotiation',
 

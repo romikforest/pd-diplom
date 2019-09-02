@@ -12,7 +12,8 @@ from ujson import loads as load_json
 from yaml import load as load_yaml, Loader, YAMLError
 
 from .models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter
-from .utils import to_decimal, to_positive_int, ResponseCreated, ResponseBadRequest, ResponseForbidden
+from .response import ResponseCreated, ResponseBadRequest, ResponseForbidden
+from .utils import to_decimal, to_positive_int, is_dict, is_list
 
 
 def load_xml(stream):

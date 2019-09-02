@@ -9,7 +9,7 @@ from django_rest_passwordreset.views import reset_password_request_token, reset_
 from rest_framework.schemas import get_schema_view
 from rest_framework.urlpatterns import format_suffix_patterns
 
-from core.utils import CustomDefaultRouter
+from core.routers import CustomDefaultRouter
 from .views import UserViewSet, PartnerViewSet, RegisterAccount, ConfirmAccount, AccountDetails, \
     ContactView, ShopViewSet, ProductInfoView, \
     CategoryViewSet
@@ -43,7 +43,7 @@ router.root_view_pre_items['redoc'] = 'redoc'
 # (т.к. заносятся в OrderedList)
 # их заново переопределит UserViewSet,
 # который в роутере регистрируется первым
-router.root_view_pre_items['user/login'] = 'user-login'
+router.root_view_pre_items['user/login (POST)'] = 'user-login'
 router.root_view_pre_items['user/register'] = 'user-register'
 router.root_view_pre_items['user/register/confirm'] = 'user-register-confirm'
 router.root_view_pre_items['user/password_reset'] = 'password-reset'

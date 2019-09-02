@@ -23,9 +23,11 @@ from rest_framework.views import APIView
 
 from core.models import Category, Shop
 from core.partner_info_loader import load_partner_info
-from core.utils import SelectableSerializersMixin, IsShop, \
-    ResponseOK, ResponseBadRequest, ResponseForbidden
+from core.permissions import IsShop
+from core.response import ResponseOK, ResponseBadRequest, ResponseForbidden
+from core.viewsets import SelectableSerializersMixin
 from rest_auth.models import ConfirmEmailToken, Contact, ADDRESS_ITEMS_LIMIT
+
 from .serializers import UserSerializer, CategorySerializer, CategoryDetailSerializer, \
     SeparateContactSerializer, PartnerUpdateSerializer, \
     ShopSerializer, ProductInfoSerializer, UserLoginSerializer
@@ -77,6 +79,9 @@ class PartnerViewSet(viewsets.GenericViewSet):
         # if request.user.type != 'shop' and not request.user.is_superuser:
         #     return ResponseForbidden('Только для магазинов')
 
+        serializer = PartnerUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         url = request.data.get('url')
         file_obj = request.data.get('file')
 
@@ -106,7 +111,8 @@ class UserViewSet(viewsets.GenericViewSet):
 
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        data = serializer.data
+
+        data = request.data
 
         if not {'email', 'password'}.issubset(data):
             return Response({'Status': False, 'Errors': t('Не указаны все необходимые аргументы')})

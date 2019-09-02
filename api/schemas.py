@@ -1,8 +1,8 @@
-from core.utils import ResponsesSchema, SimpleCreatorSchema, SimpleActionSchema
-from core.utils import ResponsesNoInputSchema, SimpleNoInputCreatorSchema, SimpleNoInputActionSchema
+from core.schemas import ResponsesSchema, SimpleCreatorSchema, SimpleActionSchema
+from core.schemas import ResponsesNoInputSchema, SimpleNoInputCreatorSchema, SimpleNoInputActionSchema
 
 
-class PartnerUpdateSchema(SimpleNoInputCreatorSchema):
+class PartnerUpdateSchema(SimpleCreatorSchema):
     """
     Класс документирует partner-update
     (добавляет статус коды в openapi документацию)

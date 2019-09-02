@@ -2,6 +2,7 @@ from django.utils.translation import gettext_lazy as t
 from rest_framework import serializers
 from rest_auth.models import User, Contact
 from core.models import Category, Shop, ProductInfo, Product, ProductParameter, OrderItem, Order
+from core.validators import NotBlankTogetherValidator, EqualTogetherValidator
 
 
 class DefaultSerializer(serializers.Serializer):
@@ -19,6 +20,9 @@ class PartnerUpdateSerializer(DefaultSerializer):
 
     class Meta:
         write_only_fields = ('url', 'file', )
+        validators = (
+            NotBlankTogetherValidator(fields=('url', 'file', )),
+        )
 
 
 class ContactSerializer(serializers.ModelSerializer):
@@ -51,6 +55,11 @@ class UserLoginSerializer(DefaultSerializer):
     password = serializers.CharField(required=True, allow_blank=False, style={'input_type': 'password'}, label=t('Password'), help_text=t('Iput password'))
     password2 = serializers.CharField(required=True, allow_blank=False, style={'input_type': 'password'}, label=t('Repeat Password'), help_text=t('Iput password again'))
     token = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        validators = (
+            EqualTogetherValidator(fields=('password', 'password2', )),
+        )
 
 
 
@@ -99,7 +108,7 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
         model = Category
         fields = ('url', 'id', 'name',)
         read_only_fields = ('id',)
-        
+
 
 class CategoryDetailSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
