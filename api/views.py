@@ -101,7 +101,7 @@ class UserViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=('post',), name='Get authorization token',
             url_name='login', url_path='login',
-            schema=UserLoginSchema()
+            schema=UserLoginSchema(),
             )
     @method_decorator(never_cache)
     def login(self, request, *args, **kwargs):

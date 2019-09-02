@@ -4,17 +4,16 @@
 
 {% block bootstrap_theme %}
     <link rel="stylesheet" href="{% static 'css/cerulean.min.css' %}" type="text/css">
+    {% if request.resolver_match.app_name == 'api' and request.resolver_match.url_name == 'user-login' %}
     <script src="https://www.google.com/recaptcha/api.js?render={% settings_value "GR_CAPTCHA_SITE" %}"></script>
     <script>
-      grecaptcha.ready(function() {
-        el = document.querySelector('[name="recaptcha"]')
-        if(el) {
+      grecaptcha.ready(function() {        
           grecaptcha.execute('{% settings_value "GR_CAPTCHA_SITE" %}', {action: 'homepage'}).then(function(token) {
                 el.value = token
           });
-        }
-    });
+      });
     </script>
+    {% endif %}
 
 {% endblock %}
 
