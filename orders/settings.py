@@ -189,13 +189,13 @@ REST_FRAMEWORK = {
 
     'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler',
 
-    'DEFAULT_CONTENT_NEGOTIATION_CLASS': 'api.utils.AcceptAsContentTypeNegotiation',
+    'DEFAULT_CONTENT_NEGOTIATION_CLASS': 'api.negotiation.AcceptAsContentTypeNegotiation',
 
     'DEFAULT_THROTTLE_CLASSES': [
-        'api.utils.BurstRateThrottle',
-        'api.utils.SustainedRateThrottle',
-        'api.utils.AnonBurstRateThrottle',
-        'api.utils.AnonSustainedRateThrottle',
+        'api.throttling.BurstRateThrottle',
+        'api.throttling.SustainedRateThrottle',
+        'api.throttling.AnonBurstRateThrottle',
+        'api.throttling.AnonSustainedRateThrottle',
         'rest_framework.throttling.ScopedRateThrottle',
     ],
 
