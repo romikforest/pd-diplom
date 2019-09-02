@@ -66,6 +66,14 @@ class UserLoginSerializer(DefaultSerializer):
         )
 
 
+class ListUserSerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('url', 'id', 'first_name', 'last_name', 'email', 'company', 'position', )
+        read_only_fields = ('url', 'id', 'first_name', 'last_name', 'email', 'company', 'position', )
+
+
 
 class UserSerializer(serializers.ModelSerializer):
     contacts = ContactSerializer(many=True, required=False)

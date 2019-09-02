@@ -12,7 +12,7 @@ from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as t
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.vary import vary_on_headers
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, action
 from rest_framework.generics import ListAPIView
@@ -25,12 +25,12 @@ from core.models import Category, Shop
 from core.partner_info_loader import load_partner_info
 from core.permissions import IsShop
 from core.response import ResponseOK, ResponseBadRequest, ResponseForbidden
-from core.viewsets import SelectableSerializersMixin
-from rest_auth.models import ConfirmEmailToken, Contact, ADDRESS_ITEMS_LIMIT
+from core.viewsets import SelectableSerializersMixin, ViewSetViewDescriptionsMixin, ViewSetScopeThrottlesMixin, ViewSetQuerysetsMixin
+from rest_auth.models import User, ConfirmEmailToken, Contact, ADDRESS_ITEMS_LIMIT
 
 from .serializers import UserSerializer, CategorySerializer, CategoryDetailSerializer, \
     SeparateContactSerializer, PartnerUpdateSerializer, \
-    ShopSerializer, ProductInfoSerializer, UserLoginSerializer
+    ShopSerializer, ProductInfoSerializer, UserLoginSerializer, ListUserSerializer
 # from backend.models import Order, OrderItem
 # from backend.serializers import  \
 #     OrderItemSerializer, OrderSerializer
@@ -38,21 +38,6 @@ from .serializers import UserSerializer, CategorySerializer, CategoryDetailSeria
 from .schemas import PartnerUpdateSchema, UserLoginSchema
 from .signals import new_user_registered, new_order
 
-
-
-
-# class FooViewSet(viewsets.ModelViewSet):
-#         queryset = Foo.objects.all()
-#         serializer_class = FooSerializer
-
-#         def get_throttles(self):
-#             if self.action in ['delete', 'validate']:
-#                 self.throttle_scope = 'foo.' + self.action
-#             return super().get_throttles()
-
-#         @list_route()
-#         def validate(self, request):
-#             return Response('Validation!')
 
 
 class PartnerViewSet(viewsets.GenericViewSet):
@@ -88,15 +73,39 @@ class PartnerViewSet(viewsets.GenericViewSet):
         return load_partner_info(url, file_obj, request.user.id)
 
 
-class UserViewSet(viewsets.GenericViewSet):
+class UserViewSet(SelectableSerializersMixin,
+                  ViewSetViewDescriptionsMixin,
+                  ViewSetScopeThrottlesMixin,
+                  ViewSetQuerysetsMixin,
+                  mixins.ListModelMixin,
+                  mixins.RetrieveModelMixin,
+                  viewsets.GenericViewSet):
     """
     Класс для работы с пользователями:
     вход, регистрация, сброс пароля, просмотр контактов и т.п.
     """
 
-    serializer_class = UserLoginSerializer
+    serializer_class = ListUserSerializer
     permission_classes = tuple()
     throttle_scope = 'user'
+
+    action_serializers = {
+        'login': UserLoginSerializer
+    }
+
+    action_throttles = {
+        'login': 'user.login'
+    }
+
+    action_descriptions = {
+        'list': t('Список пользователей'),
+        'retrieve': t('Информация о пользователе')
+    }
+
+    action_querysets = {
+        'list': User.objects.all(),
+        'retrieve': User.objects.all(),
+    }
 
 
     @action(detail=False, methods=('post',), name='Get authorization token',

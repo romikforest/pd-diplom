@@ -209,6 +209,7 @@ REST_FRAMEWORK = {
         'shops': '1000/day',
         'partner_update': '5/day',
         'user': '200/day',
+        'user.login': '200/day',
     }
 
 }
@@ -228,6 +229,7 @@ CACHE_TIMES = {
     'REDOC': 60*60*24,
 }
 
+# Тестовые (общие) ключи для капчи
 GR_CAPTCHA_SECRET_KEY = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'
 GR_CAPTCHA_SITE = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
 
