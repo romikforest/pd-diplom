@@ -1,8 +1,11 @@
 from django.utils.translation import gettext_lazy as t
+from recaptcha.fields import ReCaptchaField
 from rest_framework import serializers
-from rest_auth.models import User, Contact
+
+
 from core.models import Category, Shop, ProductInfo, Product, ProductParameter, OrderItem, Order
 from core.validators import NotBlankTogetherValidator, EqualTogetherValidator
+from rest_auth.models import User, Contact
 
 
 class DefaultSerializer(serializers.Serializer):
@@ -55,6 +58,7 @@ class UserLoginSerializer(DefaultSerializer):
     password = serializers.CharField(required=True, allow_blank=False, style={'input_type': 'password'}, label=t('Password'), help_text=t('Iput password'))
     password2 = serializers.CharField(required=True, allow_blank=False, style={'input_type': 'password'}, label=t('Repeat Password'), help_text=t('Iput password again'))
     token = serializers.SerializerMethodField(read_only=True)
+    recaptcha = ReCaptchaField(write_only=True)
 
     class Meta:
         validators = (

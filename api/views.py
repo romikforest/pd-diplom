@@ -431,7 +431,7 @@ class ProductInfoView(ListAPIView):
 # from .signals import new_user_registered, new_order
 
 
-# @cache_page(settings.CAHCE_TIMES['ROOT_API'])
+# @cache_page(settings.CACHE_TIMES['ROOT_API'])
 # @api_view(['GET'])
 # def api_root(request, *args, format=None, **kwargs):
 #     app_name = resolve(request.path).app_name 

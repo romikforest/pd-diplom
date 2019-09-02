@@ -1,8 +1,21 @@
 {% extends "rest_framework/base.html" %}
 {% load static %}
+{% load settings_value %}
 
 {% block bootstrap_theme %}
     <link rel="stylesheet" href="{% static 'css/cerulean.min.css' %}" type="text/css">
+    <script src="https://www.google.com/recaptcha/api.js?render={% settings_value "GR_CAPTCHA_SITE" %}"></script>
+    <script>
+      grecaptcha.ready(function() {
+        el = document.querySelector('[name="recaptcha"]')
+        if(el) {
+          grecaptcha.execute('{% settings_value "GR_CAPTCHA_SITE" %}', {action: 'homepage'}).then(function(token) {
+                el.value = token
+          });
+        }
+    });
+    </script>
+
 {% endblock %}
 
 {% block branding %}

@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django_rest_passwordreset',
     'nested_inline',
+    'recaptcha',
 ]
 
 MIDDLEWARE = [
@@ -218,7 +219,7 @@ CACHES = {
     }
 }
 
-CAHCE_TIMES = {
+CACHE_TIMES = {
     'ROOT_API': 60*60*24,
     'SHOPS': 60*5,
     'CATEGORIES': 60*5,
@@ -226,6 +227,11 @@ CAHCE_TIMES = {
     'SWAGGER': 60*60*24,
     'REDOC': 60*60*24,
 }
+
+GR_CAPTCHA_SECRET_KEY = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'
+GR_CAPTCHA_SITE = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+
+RECAPTCHA_TESTING = True
 
 try:
     from .settings_local import *

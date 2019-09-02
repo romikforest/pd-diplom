@@ -27,8 +27,8 @@ class Shop(models.Model):
                             on_delete=models.CASCADE)
     state = models.BooleanField(verbose_name=_('Получать заказы'), default=True)
 
-    url = models.URLField(verbose_name=_('Ссылка'), null=True, blank=True)
-    filename = models.FileField(upload_to='shops/', null=True, blank=True)
+    # url = models.URLField(verbose_name=_('Ссылка'), null=True, blank=True)
+    # filename = models.FileField(upload_to='shops/', null=True, blank=True)
 
     class Meta:
         verbose_name = _('Магазин')

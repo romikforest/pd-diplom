@@ -62,13 +62,13 @@ urlpatterns = [
 
     path('products/', ProductInfoView.as_view(), name='products'), # default caching
 
-    re_path('^docs/?$', cache_page(settings.CAHCE_TIMES['OPENAPI'])(openapi_view), name='openapi-schema'),
+    re_path('^docs/?$', cache_page(settings.CACHE_TIMES['OPENAPI'])(openapi_view), name='openapi-schema'),
     # path('core-docs', include_docs_urls(title='Shop Integrator API')),
-    re_path('^swagger-ui/?$', cache_page(settings.CAHCE_TIMES['SWAGGER'])(TemplateView.as_view(
+    re_path('^swagger-ui/?$', cache_page(settings.CACHE_TIMES['SWAGGER'])(TemplateView.as_view(
         template_name='api/swagger-ui.html',
         extra_context={'schema_url': f'{app_name}:openapi-schema'}
     )), name='swagger-ui'),
-    re_path('^redoc/?$', cache_page(settings.CAHCE_TIMES['REDOC'])(TemplateView.as_view(
+    re_path('^redoc/?$', cache_page(settings.CACHE_TIMES['REDOC'])(TemplateView.as_view(
         template_name='api/redoc.html',
         extra_context={'schema_url': f'{app_name}:openapi-schema'}
     )), name='redoc'),
@@ -113,20 +113,20 @@ urlpatterns += router.urls
 #     path('user/password_reset/', reset_password_request_token, name='password-reset'),
 #     path('user/password_reset/confirm/', reset_password_confirm, name='password-reset-confirm'),
 #     path('user/details/', AccountDetails.as_view(), name='user-details'),
-#     path('categories/', cache_page(settings.CAHCE_TIMES['CATEGORIES'])(CategoryView.as_view()), name='category'),
-#     path('categories/<int:pk>/', cache_page(settings.CAHCE_TIMES['CATEGORIES'])(CategoryDetailView.as_view()), name='category-detail'),
+#     path('categories/', cache_page(settings.CACHE_TIMES['CATEGORIES'])(CategoryView.as_view()), name='category'),
+#     path('categories/<int:pk>/', cache_page(settings.CACHE_TIMES['CATEGORIES'])(CategoryDetailView.as_view()), name='category-detail'),
 #     path('user/contact/', ContactView.as_view(), name='user-contact'),
-#     path('shops/', cache_page(settings.CAHCE_TIMES['SHOPS'])(ShopView.as_view()), name='shop'),
-#     path('shops/<int:pk>/', cache_page(settings.CAHCE_TIMES['SHOPS'])(ShopDetailView.as_view()), name='shop-detail'),
+#     path('shops/', cache_page(settings.CACHE_TIMES['SHOPS'])(ShopView.as_view()), name='shop'),
+#     path('shops/<int:pk>/', cache_page(settings.CACHE_TIMES['SHOPS'])(ShopDetailView.as_view()), name='shop-detail'),
 #     path('products/', ProductInfoView.as_view(), name='products'), # default caching
 
-#     path('docs/', cache_page(settings.CAHCE_TIMES['OPENAPI'])(openapi_view), name='openapi-schema'),
+#     path('docs/', cache_page(settings.CACHE_TIMES['OPENAPI'])(openapi_view), name='openapi-schema'),
 #     # path('core-docs', include_docs_urls(title='Shop Integrator API')),
-#     path('swagger-ui/', cache_page(settings.CAHCE_TIMES['SWAGGER'])(TemplateView.as_view(
+#     path('swagger-ui/', cache_page(settings.CACHE_TIMES['SWAGGER'])(TemplateView.as_view(
 #         template_name='api/swagger-ui.html',
 #         extra_context={'schema_url': f'{app_name}:openapi-schema'}
 #     )), name='swagger-ui'),
-#     path('redoc/', cache_page(settings.CAHCE_TIMES['REDOC'])(TemplateView.as_view(
+#     path('redoc/', cache_page(settings.CACHE_TIMES['REDOC'])(TemplateView.as_view(
 #         template_name='api/redoc.html',
 #         extra_context={'schema_url': f'{app_name}:openapi-schema'}
 #     )), name='redoc'),
