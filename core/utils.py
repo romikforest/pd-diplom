@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.conf.urls import url
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as t
+from rest_framework.permissions import BasePermission
 from rest_framework import routers
 from rest_framework.response import Response
 from rest_framework import status as http_status
@@ -15,7 +16,7 @@ def is_dict(value):
 def is_list(value):
     return type(value) == list
     # return isinstance(value, collections.Iterable)
-    
+
 
 # Заготовки типичных ответов:
 
@@ -49,6 +50,18 @@ def ResponseBadRequest(error=None, format=None, status=None, **kwargs):
 def ResponseForbidden(error=None, format=None, status=None, **kwargs):
     status = http_status.HTTP_403_FORBIDDEN
     return UniversalResponse(error, format, status, **kwargs)
+
+
+class IsShop(BasePermission):
+    """
+    Permissin class
+    Проверка, что пользователь имеет тип shop
+    """
+
+    message = t('Только для магазинов')
+
+    def has_permission(self, request, view):
+        return request.user.type == 'shop' or request.user.is_superuser
 
 
 

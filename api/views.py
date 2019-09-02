@@ -13,9 +13,7 @@ from django.utils.translation import gettext_lazy as t
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.vary import vary_on_headers
 from rest_framework import viewsets
-# from rest_framework.schemas.openapi import AutoSchema 
 from rest_framework.authtoken.models import Token
-# from rest_framework.compat import coreapi, coreschema
 from rest_framework.decorators import api_view, action
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -25,75 +23,58 @@ from rest_framework.views import APIView
 
 from core.models import Category, Shop
 from core.partner_info_loader import load_partner_info
-from core.utils import SelectableSerializersMixin, ResponseBadRequest, ResponseForbidden
+from core.utils import SelectableSerializersMixin, ResponseBadRequest, ResponseForbidden, IsShop
 from rest_auth.models import ConfirmEmailToken, Contact, ADDRESS_ITEMS_LIMIT
 from .serializers import UserSerializer, CategorySerializer, CategoryDetailSerializer, \
-    SeparateContactSerializer, PurtnerUpdateSerializer, \
+    SeparateContactSerializer, PartnerUpdateSerializer, \
     ShopSerializer, ProductInfoSerializer
 # from backend.models import Order, OrderItem
 # from backend.serializers import  \
 #     OrderItemSerializer, OrderSerializer
+
+from .schemas import PartnerUpdateSchema
 from .signals import new_user_registered, new_order
 
 
-# schemas.ManualSchema(fields=[
-#                 coreapi.Field(
-#                     "my_extra_field",
-#                     required=True,
-#                     location="path",
-#                     schema=coreschema.String()
-#                 ),
-#             ]))
 
-# class CustomSchema(AutoSchema):
-#     print('HI!')
 
-#     def get_link(self, path, method, base_url):
-#         # Implement custom introspection here (or in other sub-methods)
-#         print('HI3')
-#         print('IN', path, method, base_url, sep='/ggg/')
-#         return super(CustomSchema, self).get_link(path, method, base_url)
+# class FooViewSet(viewsets.ModelViewSet):
+#         queryset = Foo.objects.all()
+#         serializer_class = FooSerializer
 
-#     def get_operation(self, path, method):
-#         print('HI2')
-#         print('IN2', path, method, sep='/ggg/')
-#         operation = {}
+#         def get_throttles(self):
+#             if self.action in ['delete', 'validate']:
+#                 self.throttle_scope = 'foo.' + self.action
+#             return super().get_throttles()
 
-#         operation['operationId'] = self._get_operation_id(path, method)
+#         @list_route()
+#         def validate(self, request):
+#             return Response('Validation!')
 
-#         parameters = []
-#         parameters += self._get_path_parameters(path, method)
-#         parameters += self._get_pagination_parameters(path, method)
-#         parameters += self._get_filter_parameters(path, method)
-#         operation['parameters'] = parameters
-
-#         request_body = self._get_request_body(path, method)
-#         if request_body:
-#             operation['requestBody'] = request_body
-#         operation['responses'] = self._get_responses(path, method)
-
-#         print('OP:', operation)
-#         return operation
 
 class PartnerViewSet(viewsets.GenericViewSet):
     """
     Класс для работы с поставщиком
     """
 
+    serializer_class = PartnerUpdateSerializer
+    permission_classes = (IsAuthenticated, IsShop, )
     throttle_scope = 'partner_update'
-    permission_classes = [IsAuthenticated]
-    serializer_class = PurtnerUpdateSerializer
 
-    @action(detail=False, methods=['post'], name='Load partner information',
-            url_name='update', url_path='update')
+
+    @action(detail=False, methods=('post',), name='Load partner information',
+            url_name='update', url_path='update',
+            schema=PartnerUpdateSchema(),
+            )
     @method_decorator(never_cache)
+    # @method_decorator(cache_page(60*60*2))
     def update_info(self, request, *args, **kwargs):
         """
         Обновление прайса от поставщика из указанного url или загруженного файла
         """
 
-        if request.user.type != 'shop' and not request.user.is_superuser:
-            return ResponseForbidden('Только для магазинов')
+        # if request.user.type != 'shop' and not request.user.is_superuser:
+        #     return ResponseForbidden('Только для магазинов')
 
         url = request.data.get('url')
         file_obj = request.data.get('file')
