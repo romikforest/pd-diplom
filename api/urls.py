@@ -9,10 +9,10 @@ from django_rest_passwordreset.views import reset_password_request_token, reset_
 from rest_framework.schemas import get_schema_view
 from rest_framework.urlpatterns import format_suffix_patterns
 
-from core.routers import CustomDefaultRouter
-from .views import UserViewSet, PartnerViewSet, RegisterAccount, ConfirmAccount, AccountDetails, \
-    ContactView, ShopViewSet, ProductInfoView, \
-    CategoryViewSet
+from core.routers import CustomDefaultRouter, CustomSimpleRouter #, CustomNestedSimpleRouter
+from .views import UserViewSet, PartnerViewSet, \
+    ShopViewSet, ProductInfoViewSet, \
+    CategoryViewSet, ContactViewSet, ProductParametersViewSet
 
 # from .views import PartnerUpdate, LoginAccount, RegisterAccount, ConfirmAccount, AccountDetails, \
 #     CategoryView, CategoryDetailView, ContactView, ShopView, ShopDetailView, ProductInfoView, \
@@ -29,10 +29,15 @@ openapi_view = get_schema_view(title='Shop Integrator API', description='API for
 router = CustomDefaultRouter()
 router.APIRootView.__doc__ = 'Добро пожаловать в магазинчик'
 
-router.register('user', UserViewSet, 'user')
+# router.register('users/contacts', ContactViewSet, base_name='contact')
+router.register('users', UserViewSet, 'user')
+router.register('partners', PartnerViewSet, 'partner')
+router.register('contacts', ContactViewSet, base_name='contact') # Общий функционал для user/partner
 router.register('categories', CategoryViewSet)
 router.register('shops', ShopViewSet)
-router.register('partner', PartnerViewSet, 'partner')
+router.register('products', ProductInfoViewSet, 'productinfo')
+router.register('productparameters', ProductParametersViewSet, 'productparameter')
+
 
 router.root_view_pre_items['api root'] = 'api-root'
 router.root_view_pre_items['docs (OpenAPI schema)'] = 'openapi-schema'
@@ -43,27 +48,20 @@ router.root_view_pre_items['redoc'] = 'redoc'
 # (т.к. заносятся в OrderedList)
 # их заново переопределит UserViewSet,
 # который в роутере регистрируется первым
-router.root_view_pre_items['user/login (POST)'] = 'user-login'
-router.root_view_pre_items['user/register'] = 'user-register'
-router.root_view_pre_items['user/register/confirm'] = 'user-register-confirm'
-router.root_view_pre_items['user/password_reset'] = 'password-reset'
-router.root_view_pre_items['user/password_reset/confirm'] = 'password-reset-confirm'
+router.root_view_pre_items['users/login (POST)'] = 'user-login'
+router.root_view_pre_items['users/register'] = 'user-register'
+router.root_view_pre_items['users/register/confirm'] = 'user-register-confirm'
+router.root_view_pre_items['users/password_reset'] = 'password-reset'
+router.root_view_pre_items['users/password_reset/confirm'] = 'password-reset-confirm'
 
 
 urlpatterns = [
-    re_path('^user/password_reset/?$', reset_password_request_token, name='password-reset'),
-    re_path('^user/password_reset/confirm/?$', reset_password_confirm, name='password-reset-confirm'),
+    re_path('^users/password_reset/?$', reset_password_request_token, name='password-reset'),
+    re_path('^users/password_reset/confirm/?$', reset_password_confirm, name='password-reset-confirm'),
 
-    # re_path('^user/login/?$', LoginAccount.as_view(), name='user-login'),
-    path('user/register/', RegisterAccount.as_view(), name='user-register'),
-    path('user/register/confirm/', ConfirmAccount.as_view(), name='user-register-confirm'),   
-    path('user/details/', AccountDetails.as_view(), name='user-details'),
-    path('user/contact/', ContactView.as_view(), name='user-contact'),
-
-    path('products/', ProductInfoView.as_view(), name='products'), # default caching
+    # path('products/', ProductInfoView.as_view(), name='products'), # default caching
 
     re_path('^docs/?$', cache_page(settings.CACHE_TIMES['OPENAPI'])(openapi_view), name='openapi-schema'),
-    # path('core-docs', include_docs_urls(title='Shop Integrator API')),
     re_path('^swagger-ui/?$', cache_page(settings.CACHE_TIMES['SWAGGER'])(TemplateView.as_view(
         template_name='api/swagger-ui.html',
         extra_context={'schema_url': f'{app_name}:openapi-schema'}
@@ -81,7 +79,8 @@ urlpatterns = [
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
-urlpatterns += router.urls
+urlpatterns += router.urls # + customer_contact_router.urls
+
 
 ##########################################################################################################
 

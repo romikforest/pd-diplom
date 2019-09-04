@@ -1,5 +1,8 @@
+from django.utils.translation import gettext_lazy as t
 from rest_framework import status as http_status
 from rest_framework.response import Response
+
+from core.utils import is_dict
 
 # Заготовки типичных http ответов:
 
@@ -19,9 +22,9 @@ def UniversalResponse(error=None, format=None, status=418, **kwargs):
     response = {'Status': False}
     if error:
         if format:
-            response['Error'] = t(error if is_dict(error) else str(error)).format(**format if is_dict(format) else str(format))
+            response['Errors'] = t(error if is_dict(error) else str(error)).format(**format if is_dict(format) else str(format))
         else:
-            response['Error'] = t(error if is_dict(error) else str(error))
+            response['Errors'] = t(error if is_dict(error) else str(error))
     if kwargs:
         response.update(kwargs)
     return Response(response, status=status)

@@ -25,7 +25,7 @@ class ResponsesSchema(AutoSchema):
 
     standard_error_properties = {
         'Status': {'type': 'boolean', 'readOnly': True, 'description': 'Http Status code'},
-        'Error': {'type': 'string', 'readOnly': True, 'description': 'Error message(s)'},
+        'Errors': {'type': 'string', 'readOnly': True, 'description': 'Error message(s)'},
     }
 
     dict_path = ('content', 'application/json', 'schema', 'properties', )
@@ -54,10 +54,7 @@ class ResponsesSchema(AutoSchema):
         for key, value in content.items():
             if not is_dict(value) or not 'readOnly' in value:
                 continue
-            if key != 'Error' and value['readOnly'] == True:
-                if key == 'Status':
-                    value = deepcopy(value)
-                    value['type'] = 'boolean'
+            if key != 'Errors' and value['readOnly'] == True:
                 properties[key] = value
 
         return properties
@@ -113,11 +110,11 @@ class ResponsesSchema(AutoSchema):
     def get_operation(self, path, method, *arg, **kwargs):
         self.get_parsers_mimes(self.view.request)
         operation = super().get_operation(path, method, *arg, **kwargs)
-        if not len(operation['responses']):
-            return operation
-        content = operation['responses'][next(iter(operation['responses']))]          
-        operation['responses'] = self.generate_response_options(content)
-        test = operation['requestBody']
+        responses = operation.get('responses', {})
+        if len(responses):
+            content = responses[next(iter(responses))]          
+            operation['responses'] = self.generate_response_options(content)
+        test = operation.get('requestBody', {})
         for item in ('content', 'application/json', 'schema'):
             if not is_dict(test) or item not in test:
                 return operation

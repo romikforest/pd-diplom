@@ -12,3 +12,11 @@ class PartnerUpdateSchema(SimpleCreatorSchema):
 
 class UserLoginSchema(SimpleActionSchema):
     pass
+
+
+class CaptchaInfoSchema(ResponsesSchema):
+
+    status_description = {
+        '200': 'Done',
+    }
+

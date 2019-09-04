@@ -1,6 +1,6 @@
 # Примеси для сериалайзеров:
 
-class SelectableSerializersMixin(object):
+class ViewSetViewSerializersMixin(object):
     """
     Миксин выбора сериалайзера отдельно для каждого действия
     Используется с ViewSets.
@@ -14,7 +14,7 @@ class SelectableSerializersMixin(object):
         if hasattr(self, 'action_serializers'):
             if self.action in self.action_serializers:
                 return self.action_serializers[self.action]
-        return super(SelectableSerializersMixin, self).get_serializer_class()
+        return super(ViewSetViewSerializersMixin, self).get_serializer_class()
 
 
 class ViewSetViewDescriptionsMixin(object):
@@ -31,7 +31,7 @@ class ViewSetViewDescriptionsMixin(object):
         return super(ViewSetViewDescriptionsMixin, self).get_view_description(html)
 
 
-class ViewSetScopeThrottlesMixin(object):
+class ViewSetViewScopeThrottlesMixin(object):
     """
     Миксин для документирования задания throttles для отдельных действий в ViewSet
     scope throttles должны быть описаны в словаре action_scope_throttles
@@ -42,9 +42,10 @@ class ViewSetScopeThrottlesMixin(object):
         if hasattr(self, 'action_scope_throttles'):
             if self.action in self.action_scope_throttles:
                 return self.action_scope_throttles[self.action]
-        return super(ViewSetScopeThrottlesMixin, self).get_throttles()
+        return super(ViewSetViewScopeThrottlesMixin, self).get_throttles()
 
-class ViewSetQuerysetsMixin(object):
+
+class ViewSetViewQuerysetsMixin(object):
     """
     Миксин для задания queryset действиям в ViewSet
     queryset должны быть заданы в словаре action_querysets
@@ -54,4 +55,32 @@ class ViewSetQuerysetsMixin(object):
         if hasattr(self, 'action_querysets'):
             if self.action in self.action_querysets:
                 return self.action_querysets[self.action]
-        return super(ViewSetQuerysetsMixin, self).action_querysets()
+        return super(ViewSetViewQuerysetsMixin, self).get_queryset()
+
+
+class ViewSetViewPermissionsMixin(object):
+    """
+    Миксин для задания определения permissions для действий в ViewSet
+    разрешения должны быть заданы в словаре action_permissions
+    """
+
+    def get_permissions(self):
+        if hasattr(self, 'action_permissions'):
+            if self.action in self.action_permissions:
+                return [ permission() for permission in self.action_permissions[self.action]]
+        return super(ViewSetViewPermissionsMixin, self).get_permissions()
+
+
+class SuperSelectableMixin(ViewSetViewSerializersMixin,
+                           ViewSetViewDescriptionsMixin,
+                           ViewSetViewScopeThrottlesMixin,
+                           ViewSetViewQuerysetsMixin,
+                           ViewSetViewPermissionsMixin,
+                           object
+                          ):
+    """
+    Миксин собирает в себе возможности других миксинов кастомизации данного модуля,
+    работающих с полями action_*
+    """
+
+    pass

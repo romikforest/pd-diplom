@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django_rest_passwordreset',
     'nested_inline',
     'recaptcha',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -207,10 +208,18 @@ REST_FRAMEWORK = {
         'anon_sustained': '500/day',
         'categories': '1000/day',
         'shops': '1000/day',
-        'partner_update': '5/day',
+        'partner.update': '5/day',
         'user': '200/day',
         'user.login': '200/day',
-    }
+        'user.register': '200/day',
+        'user.captcha': '200/day',
+    },
+
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
 
 }
 
@@ -231,7 +240,9 @@ CACHE_TIMES = {
 
 # Тестовые (общие) ключи для капчи
 GR_CAPTCHA_SECRET_KEY = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'
-GR_CAPTCHA_SITE = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+GR_CAPTCHA_SITE_KEY = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+
+CAPTCHA_VIEWS = ('user-login', 'user-register', 'partner-login', 'partner-register', )
 
 RECAPTCHA_TESTING = True
 

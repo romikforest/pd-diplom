@@ -68,9 +68,9 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
     objects = UserManager()
     USERNAME_FIELD = 'email'
-    email = models.EmailField(_('email address'), unique=True)
-    company = models.CharField(verbose_name=_('Компания'), max_length=40, blank=True)
-    position = models.CharField(verbose_name=_('Должность'), max_length=40, blank=True)
+    email = models.EmailField(_('email address'), help_text=_('Введите email адрес'), unique=True)
+    company = models.CharField(verbose_name=_('Компания'), help_text=_('Укажите компанию'), max_length=40, blank=True)
+    position = models.CharField(verbose_name=_('Должность'), help_text=_('Укажите должность'), max_length=40, blank=True)
     username_validator = UnicodeUsernameValidator()
     username = models.CharField(
         _('username'),
@@ -149,12 +149,12 @@ class Contact(models.Model):
 
     phone = PhoneNumberField(null=True, blank=True, verbose_name=_('Телефон'), help_text=_('Телефон'))
 
-    city = models.CharField(max_length=50, verbose_name=_('Город'), blank=True)
-    street = models.CharField(max_length=100, verbose_name=_('Улица'), blank=True)
-    house = models.CharField(max_length=15, verbose_name=_('Дом'), blank=True)
-    structure = models.CharField(max_length=15, verbose_name=_('Корпус'), blank=True)
-    building = models.CharField(max_length=15, verbose_name=_('Строение'), blank=True)
-    apartment = models.CharField(max_length=15, verbose_name=_('Квартира'), blank=True)
+    city = models.CharField(max_length=50, verbose_name=_('Город'), help_text=_('Введите город'), blank=True)
+    street = models.CharField(max_length=100, verbose_name=_('Улица'), help_text=_('Введите улицу'), blank=True)
+    house = models.CharField(max_length=15, verbose_name=_('Дом'), help_text=_('Введите дом'), blank=True)
+    structure = models.CharField(max_length=15, verbose_name=_('Корпус'), help_text=_('Введите корпус'), blank=True)
+    building = models.CharField(max_length=15, verbose_name=_('Строение'), help_text=_('Введите строение'), blank=True)
+    apartment = models.CharField(max_length=15, verbose_name=_('Квартира'), help_text=_('Введите квартиру'), blank=True)
 
     def save(self, *args, **kwargs):
         if self.user.contacts.count() < ADDRESS_ITEMS_LIMIT or self.user.contacts.filter(id=self.id).exists():

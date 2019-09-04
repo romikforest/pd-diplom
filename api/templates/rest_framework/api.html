@@ -4,17 +4,28 @@
 
 {% block bootstrap_theme %}
     <link rel="stylesheet" href="{% static 'css/cerulean.min.css' %}" type="text/css">
-    {% if request.resolver_match.app_name == 'api' and request.resolver_match.url_name == 'user-login' %}
-    <script src="https://www.google.com/recaptcha/api.js?render={% settings_value "GR_CAPTCHA_SITE" %}"></script>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" type="text/css">
+    {% if request.resolver_match.app_name == 'api' %}
+    {% settings_value "CAPTCHA_VIEWS" as captcha_views %}
+    {% if request.resolver_match.url_name in captcha_views %}
+
+    <script src="https://www.google.com/recaptcha/api.js?render={% settings_value "GR_CAPTCHA_SITE_KEY" %}"></script>
     <script>
       grecaptcha.ready(function() {        
-          grecaptcha.execute('{% settings_value "GR_CAPTCHA_SITE" %}', {action: 'homepage'}).then(function(token) {
+          grecaptcha.execute('{% settings_value "GR_CAPTCHA_SITE_KEY" %}', {action: 'homepage'}).then(function(token) {
                 el.value = token
           });
       });
     </script>
     {% endif %}
-
+    {% endif %}
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        document.body.innerHTML = document.body.innerHTML.replace(
+        'Lists are not currently supported in HTML input.',
+        'Вы можете ввести эти данные при использовании REST api или заполнив Raw data. В формах это не реализовано');
+      });
+    </script>
 {% endblock %}
 
 {% block branding %}
