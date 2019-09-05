@@ -3,7 +3,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.db import transaction, IntegrityError
-from django.db.models import Q, Sum, F, DecimalField, Prefetch
+from django.db.models import Q, Sum, F, DecimalField #, Prefetch
 from django.urls import resolve
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as t
@@ -495,11 +495,6 @@ class OrderViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, vi
                 'ordered_items__product_info__product_parameters__parameter').select_related('contact').annotate(
                 total_sum=Sum(F('ordered_items__quantity') * F('ordered_items__product_info__price'),
                           output_field=DecimalField(max_digits=20, decimal_places=2))).distinct()
-        # else:
-        #     return Order.objects.filter(
-        #         user_id=self.request.user.id).exclude(state='basket').prefetch_related(
-        #             Prefetch('contact', queryset=self.user.contacts)
-        #         )
 
 
     def create(self, request, *args, **kwargs):
