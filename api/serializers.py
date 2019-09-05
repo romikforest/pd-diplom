@@ -114,7 +114,7 @@ class RegisterUserSerializer(DefaultModelSerializer):
         validated_data.pop('password2')
         validated_data.pop('recaptcha')
             
-        user = User.objects.create(**validated_data, type=self.context['view'].request.user.type)
+        user = User.objects.create(**validated_data, type=self.context['user_type'])
         user.set_password(password)
 
         for contact in contact_data:

@@ -40,3 +40,7 @@ def ResponseForbidden(error=None, format=None, status=None, **kwargs):
 def ResponseConflict(error=None, format=None, status=None, **kwargs):
     status = http_status.HTTP_409_CONFLICT
     return UniversalResponse(error, format, status, **kwargs)
+
+def ResponseNotFound(error=None, format=None, status=None, **kwargs):
+    status = http_status.HTTP_404_NOT_FOUND
+    return UniversalResponse(error, format, status, **kwargs)

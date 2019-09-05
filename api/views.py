@@ -96,6 +96,8 @@ class BaseUserViewSet(SuperSelectableMixin,
     вход, регистрация, сброс пароля, просмотр контактов и т.п.
     """
 
+    user_type = 'buyer'
+
     serializer_class = shared_user_properties.get('serializer_class', tuple())
     permission_classes = shared_user_properties.get('permission_classes', tuple())
     throttle_scope = shared_user_properties.get('throttle_scope', None)
@@ -151,7 +153,7 @@ class BaseUserViewSet(SuperSelectableMixin,
         """
         Регистрация покупателей
         """
-        serializer = self.get_serializer_class()(data=request.data, context={'request': request})
+        serializer = self.get_serializer_class()(data=request.data, context={'request': request, 'user_type': self.user_type})
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         new_user_registered.send(sender=self.__class__, user_id=user.id)
@@ -225,6 +227,8 @@ class PartnerViewSet(BaseUserViewSet):
     """
     Класс для работы с поставщиком
     """
+
+    user_type = 'shop'
 
     serializer_class = shared_user_properties.get('serializer_class', tuple())
     permission_classes = shared_user_properties.get('permission_classes', tuple())
