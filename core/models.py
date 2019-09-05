@@ -3,6 +3,8 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from rest_auth.models import Contact
+
 
 STATE_CHOICES = (
     ('basket', _('Статус корзины')),
@@ -23,8 +25,9 @@ CONTACT_TYPE_CHOICES = (
 class Shop(models.Model):
     name = models.CharField(max_length=50, verbose_name=_('Название'), unique=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Пользователь'),
-                            blank=True, null=True,
-                            on_delete=models.CASCADE)
+                             related_name='shops',
+                             blank=True, null=True,
+                             on_delete=models.CASCADE)
     state = models.BooleanField(verbose_name=_('Получать заказы'), default=True)
 
     # url = models.URLField(verbose_name=_('Ссылка'), null=True, blank=True)
@@ -133,6 +136,11 @@ class Order(models.Model):
     dt = models.DateTimeField(auto_now_add=True)
 
     state = models.CharField(verbose_name=_('Статус'), choices=STATE_CHOICES, max_length=25)
+
+    contact = models.ForeignKey(Contact, verbose_name='Контакт',
+                                related_name='orders',
+                                blank=True, null=True,
+                                on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = _('Заказ')

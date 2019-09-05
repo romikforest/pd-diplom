@@ -36,3 +36,7 @@ def ResponseBadRequest(error=None, format=None, status=None, **kwargs):
 def ResponseForbidden(error=None, format=None, status=None, **kwargs):
     status = http_status.HTTP_403_FORBIDDEN
     return UniversalResponse(error, format, status, **kwargs)
+
+def ResponseConflict(error=None, format=None, status=None, **kwargs):
+    status = http_status.HTTP_409_CONFLICT
+    return UniversalResponse(error, format, status, **kwargs)

@@ -1,12 +1,9 @@
-# from distutils.util import strtobool
 from django.contrib.auth.password_validation import validate_password
 
 from django.conf import settings
 from django.contrib.auth import authenticate
-from django.db import transaction
-from django.db.models import Q
-# from django.db import IntegrityError
-# from django.db.models import Q, Sum, F
+from django.db import transaction, IntegrityError
+from django.db.models import Q, Sum, F, DecimalField, Prefetch
 from django.urls import resolve
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as t
@@ -20,12 +17,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
+from ujson import loads as load_json
 
 from core.mixins import SuperSelectableMixin, ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin
-from core.models import Category, Shop, ProductInfo, Product, ProductParameter
+from core.models import Category, Shop, ProductInfo, Product, ProductParameter, Order, OrderItem
 from core.partner_info_loader import load_partner_info
 from core.permissions import IsShop
-from core.response import ResponseOK, ResponseCreated, ResponseBadRequest, ResponseForbidden
+from core.response import ResponseOK, ResponseCreated, ResponseBadRequest, ResponseForbidden, ResponseConflict
 from core.utils import to_positive_int
 from rest_auth.models import User, ConfirmEmailToken, Contact, ADDRESS_ITEMS_LIMIT
 
@@ -33,10 +31,9 @@ from .serializers import RegisterUserSerializer, CategorySerializer, CategoryDet
     ContactSerializer, PartnerUpdateSerializer, ContactBulkDeleteSerializer, \
     ShopSerializer, ProductInfoSerializer, UserLoginSerializer, ListUserSerializer, \
     CaptchaInfoSerializer, ConfirmUserSerializer, UpdateUserDetailsSerializer, \
-    ProductSerializer, ProductParameterSerializer
-# from backend.models import Order, OrderItem
-# from backend.serializers import  \
-#     OrderItemSerializer, OrderSerializer
+    ProductSerializer, ProductParameterSerializer, OrderSerializer, CreateOrderSerializer, \
+    OrderItemSerializer, AddOrderItemSerializer, ShowBasketSerializer, OrderItemsStringSerializer, \
+    BusketSetQuantitySerializer   
 
 from .schemas import SimpleActionSchema, SimpleCreatorSchema, PartnerUpdateSchema, UserLoginSchema, CaptchaInfoSchema
 from .signals import new_user_registered, new_order
@@ -60,6 +57,8 @@ shared_user_properties = {
         'confirm': ConfirmUserSerializer,
         'details': UpdateUserDetailsSerializer,
         'update_info': PartnerUpdateSerializer,
+        'state': ShopSerializer,
+        'orders': OrderSerializer,
     },
 
     'action_throttles': {
@@ -83,6 +82,8 @@ shared_user_properties = {
         'retrieve': (IsAuthenticated, ),
         'details': (IsAuthenticated, ),
         'update_info': (IsAuthenticated, IsShop, ),
+        'state': (IsAuthenticated, IsShop, ),
+        'orders': (IsAuthenticated, IsShop, ),
     },
     
 }
@@ -94,8 +95,6 @@ class BaseUserViewSet(SuperSelectableMixin,
     Базовый класс для работы с пользователями:
     вход, регистрация, сброс пароля, просмотр контактов и т.п.
     """
-
-    user_type = 'buyer'
 
     serializer_class = shared_user_properties.get('serializer_class', tuple())
     permission_classes = shared_user_properties.get('permission_classes', tuple())
@@ -152,7 +151,7 @@ class BaseUserViewSet(SuperSelectableMixin,
         """
         Регистрация покупателей
         """
-        serializer = self.get_serializer_class()(data=request.data, context={user_type: user_type})
+        serializer = self.get_serializer_class()(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         new_user_registered.send(sender=self.__class__, user_id=user.id)
@@ -227,8 +226,6 @@ class PartnerViewSet(BaseUserViewSet):
     Класс для работы с поставщиком
     """
 
-    user_type = 'shop'
-
     serializer_class = shared_user_properties.get('serializer_class', tuple())
     permission_classes = shared_user_properties.get('permission_classes', tuple())
     throttle_scope = shared_user_properties.get('throttle_scope', None)
@@ -263,9 +260,59 @@ class PartnerViewSet(BaseUserViewSet):
         return load_partner_info(data.get('url'), data.get('file'), request.user.id)
 
 
+    @action(detail=False, methods=('get', 'put'), name='Shop status control',
+            url_name='state', url_path='state',
+            schema=SimpleActionSchema(),
+            )
+    @method_decorator(never_cache)
+    def state(self, request, *args, **kwargs):
+        """
+        Активация / деактивация магазина
+        """
+
+        if request.method == 'GET':
+
+            shops = request.user.shops
+            if shops:
+                serializer = ShopSerializer(shops, context={'request': request}, many=True)
+                return ResponseOK(data=serializer.data)
+            return ResponseOK()
+
+        else:
+
+            serializer = self.get_serializer_class()(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            state = serializer.validated_data['state']
+
+            Shop.objects.filter(user=request.user).update(state=state)
+            return ResponseOK(state=state)
+
+    @action(detail=False, methods=('get', ), name='View orders',
+            url_name='orders', url_path='orders',
+            schema=SimpleActionSchema(),
+            # ordering_fields=('first_name', ),
+            # ordering=('first_name', ),
+            # search_fields=('first_name', ),
+            )
+    def orders(self, request, *args, **kwargs):
+        """
+        Просмотр заказов поставщиками
+        """
+        order = Order.objects.filter(
+            ordered_items__product_info__shop__user_id=request.user.id).exclude(state='basket').prefetch_related(
+            'ordered_items__product_info__product__category',
+            'ordered_items__product_info__product_parameters__parameter').select_related('contact').annotate(
+            total_sum=Sum(F('ordered_items__quantity') * F('ordered_items__product_info__price'),
+                          output_field=DecimalField(max_digits=20, decimal_places=2))
+        ).distinct()
+
+        serializer = OrderSerializer(order, many=True)
+        return ResponseOK(data=serializer.data)
+
+
 class ContactViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, viewsets.ModelViewSet):
     """
-    Класс для работы с контактами покупателей
+    Класс для работы с контактами пользователей
     """
 
     permission_classes = (IsAuthenticated, )
@@ -300,7 +347,7 @@ class ContactViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, 
 
         return ResponseCreated()
 
-    @action(detail=False, methods=('delete', ), name='Bulk delete contact information',
+    @action(detail=False, methods=('delete', 'post' ), name='Bulk delete contact information',
             url_name='bulkdelete', url_path='bulkdelete',
             schema=SimpleActionSchema(),
             )
@@ -308,11 +355,13 @@ class ContactViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, 
         """
         Групповое удаление (не работает в веб апи)
         """
-        items_sting = request.data.get('items')
-        if not items_sting:
+        # Метод post добавлен, чтобы можно было тестить из веб api, т.к. он не позволяет добавлять параметры в веб интерфейсе
+
+        items_string = request.data.get('items')
+        if not items_string or type(items_string) != str:
             return ResponseBadRequest('Не указаны все необходимые аргументы')
 
-        items_list = items_sting.split(',')
+        items_list = items_string.split(',')
         query = Q()
         objects_to_delete = 0
         for contact_id in items_list:
@@ -410,6 +459,230 @@ class ProductInfoViewSet(viewsets.ReadOnlyModelViewSet):
             query).select_related(
             'shop', 'product__category').prefetch_related(
             'product_parameters__parameter').distinct()
+
+
+class OrderViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, viewsets.ReadOnlyModelViewSet):
+    """
+    Класс для получения и размещения заказов пользователями
+    """
+
+    permission_classes = (IsAuthenticated, )
+    serializer_class = OrderSerializer
+
+    # filterset_fields = ('city', )
+    # ordering_fields = ('person', 'id', )
+    # search_fields = ('person', 'phone', 'city', 'street', 'house', 'structure', 'building', 'apartment', )
+    # ordering = ('person', )
+
+    action_descriptions = {
+        'list': t('Список заказов текущего пользователя'),
+        'retrieve': t('Заказ текущего пользователя'),
+    }
+
+    action_serializers = {
+        'create': CreateOrderSerializer
+    }
+
+    def get_queryset(self):
+        if self.request.method == 'GET':
+            return Order.objects.filter(
+                user_id=self.request.user.id).exclude(state='basket').prefetch_related(
+                'ordered_items__product_info__product__category',
+                'ordered_items__product_info__product_parameters__parameter').select_related('contact').annotate(
+                total_sum=Sum(F('ordered_items__quantity') * F('ordered_items__product_info__price'),
+                          output_field=DecimalField(max_digits=20, decimal_places=2))).distinct()
+        # else:
+        #     return Order.objects.filter(
+        #         user_id=self.request.user.id).exclude(state='basket').prefetch_related(
+        #             Prefetch('contact', queryset=self.user.contacts)
+        #         )
+
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer_class()(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        try:
+            order = Order.objects.get(user_id=request.user.id, state='basket')
+        except:
+            return ResponseConflict('Корзина пуста')
+
+        try:
+            is_updated = Order.objects.filter(
+                user_id=request.user.id, id=order.id).update(
+                contact_id=data['contact'],
+                state='new')
+        except IntegrityError as error:
+            return ResponseBadRequest('Неправильно указаны аргументы')
+        else:
+            if is_updated:
+                new_order.send(sender=self.__class__, user_id=request.user.id)
+                return ResponseOK()
+
+        return ResponseBadRequest('Не указаны все необходимые аргументы')
+
+
+class BasketViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, viewsets.GenericViewSet):
+    """
+    Класс для работы с корзиной пользователя
+    """
+
+    permission_classes = (IsAuthenticated, )
+    serializer_class = OrderSerializer
+
+    # #filterset_fields = ('city', )
+    # ordering_fields = ('id', )
+    # # search_fields = ('person', 'phone', 'city', 'street', 'house', 'structure', 'building', 'apartment', )
+    # ordering = ('id', )
+
+    action_descriptions = {
+        'list': t('Список заказов в корзине текущего пользователя'),
+        'retrieve': t('Заказ в корзине текущего пользователя'),
+    }
+
+    action_serializers = {
+        'list': ShowBasketSerializer,
+        'add_items': AddOrderItemSerializer,
+        'delete_goods': OrderItemsStringSerializer,
+        'set_quantity': BusketSetQuantitySerializer,
+    }
+
+    def get_queryset(self, *argc, **argv):
+        if self.request.method == 'GET':
+            return Order.objects.filter(
+                user_id=self.request.user.id, state='basket').prefetch_related(
+                'ordered_items__product_info__product__category',
+                'ordered_items__product_info__product_parameters__parameter').annotate(
+                total_sum=Sum(F('ordered_items__quantity') * F('ordered_items__product_info__price'),
+                            output_field=DecimalField(max_digits=20, decimal_places=2)
+                )).distinct()
+        else:
+            return super(BasketViewSet, self).get_queryset(*argc, **argv)
+
+
+    def list(self, request, *args, **kwargs):
+        basket = self.get_queryset()
+
+        serializer = self.get_serializer_class()(basket, many=True, context={'request': request})
+        return ResponseOK(data=serializer.data)
+
+    
+    @action(detail=False, methods=('put',), name='Add goods to the cart',
+            url_name='add_goods', url_path='add_goods',
+            schema=SimpleActionSchema(),
+            )
+    @method_decorator(never_cache)
+    def add_items(self, request, *args, **kwargs):
+        """
+        Добавить товары в корзину
+        """
+
+        def create_items(items):
+            basket, _ = Order.objects.get_or_create(user_id=request.user.id, state='basket')
+
+            for order_item in items:
+                serializer = self.get_serializer_class()(data=order_item)
+                serializer.is_valid(raise_exception=True)
+                data = serializer.validated_data
+                data.update({'order_id': basket.id})
+                data.pop('items', None)
+                try:
+                    OrderItem.objects.create(**data)
+                except IntegrityError as error:
+                    raise ValueError(error)
+            return ResponseOK()
+            
+        items_string = request.data.get('items')
+        if items_string and items_string != 'null':
+            try:
+                items = load_json(items_string)
+            except (ValueError, TypeError):
+                return ResponseBadRequest('Неверный формат запроса')
+        else:
+            items = [ request.data ]
+
+        try:
+            with transaction.atomic():
+                return create_items(items)
+
+        except ValueError as e:
+            return ResponseBadRequest(e)
+
+    # удалить товары из корзины
+    @action(detail=False, methods=('delete', 'post'), name='Delete goods from the cart',
+            url_name='delete_goods', url_path='delete_goods',
+            schema=SimpleActionSchema(),
+            )
+    @method_decorator(never_cache)
+    def delete_goods(self, request, *args, **kwargs):
+        """
+        Удалить товары из корзины
+        """
+        # Метод post добавлен, чтобы можно было тестить из веб api, т.к. он не позволяет добавлять параметры в веб интерфейсе
+
+        items_string = request.data.get('items')
+         
+        if not items_string or type(items_string) != str:
+             return ResponseBadRequest('Не указаны все необходимые аргументы (Строка items_string)')
+
+        try:
+            with transaction.atomic():
+                items_list = items_string.split(',')
+                if not items_list:
+                    return ResponseOK()
+                basket, _ = Order.objects.get_or_create(user_id=request.user.id, state='basket')
+                query = Q()
+                for order_item_id in items_list:
+                    if not order_item_id.isdigit():
+                        raise ValueError('Некорректные входные данные')
+                    query = query | Q(order_id=basket.id, id=order_item_id)
+
+                deleted_count = OrderItem.objects.filter(query).delete()[0]
+                if deleted_count != len(items_list):
+                    raise ValueError('Некорректные входные данные here')
+                return ResponseOK()
+        except ValueError as e:
+            return ResponseBadRequest(e)
+        
+
+    @action(detail=False, methods=('put',), name='Set quantity for goods',
+            url_name='set_quantity', url_path='set_quantity',
+            schema=SimpleActionSchema(),
+            )
+    @method_decorator(never_cache)
+    def set_quantity(self, request, *args, **kwargs):
+        """
+        Изменить количество товаров
+        """
+
+        items_string = request.data.get('items')
+        
+        if not items_string or type(items_string) != str:
+            if not {'id', 'quantity'}.issubset(request.data):
+                return ResponseBadRequest('Не указаны все необходимые аргументы (items или id и quantity)')
+            try:
+                items_dict = [ { 'id': int(request.data.get('id')), 'quantity': int(request.data.get('quantity')) } ]
+            except (ValueError, TypeError):
+                return ResponseBadRequest('Неверный формат запроса')
+        else:
+            try:
+                items_dict = load_json(items_string)
+            except ValueError:
+                return ResponseBadRequest('Неверный формат запроса')
+            
+        try:
+            with transaction.atomic():
+                basket, _ = Order.objects.get_or_create(user_id=request.user.id, state='basket')
+                for order_item in items_dict:
+                    if type(order_item['id']) != int or type(order_item['quantity']) != int:
+                        raise Exception()
+                    OrderItem.objects.filter(order_id=basket.id, id=order_item['id']).update(
+                        quantity=order_item['quantity'])
+        except Exception:
+            return ResponseBadRequest('Неверный формат запроса')
+
+        return ResponseOK()
+        
 
 
 ####################################################################################################
@@ -675,11 +948,11 @@ class ProductInfoViewSet(viewsets.ReadOnlyModelViewSet):
 #     @method_decorator(never_cache)
 #     def delete(self, request, *args, **kwargs):
 
-#         items_sting = request.data.get('items')
-#         if not items_sting:
+#         items_string = request.data.get('items')
+#         if not items_string:
 #             return Response({'Status': False, 'Errors': t('Не указаны все необходимые аргументы')})
 
-#         items_list = items_sting.split(',')
+#         items_list = items_string.split(',')
 #         query = Q()
 #         objects_to_delete = 0
 #         for contact_id in items_list:

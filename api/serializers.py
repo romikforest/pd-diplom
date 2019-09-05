@@ -40,7 +40,8 @@ class ContactSerializer(DefaultModelSerializer):
 
     
 class ContactBulkDeleteSerializer(DefaultSerializer):
-    items = serializers.ListField(child=serializers.IntegerField(min_value=0), write_only=True)
+    # items = serializers.ListField(child=serializers.IntegerField(min_value=0), write_only=True)
+    items = serializers.CharField()
         
 
 
@@ -112,9 +113,8 @@ class RegisterUserSerializer(DefaultModelSerializer):
         password = validated_data.pop('password')
         validated_data.pop('password2')
         validated_data.pop('recaptcha')
-        user_type = self.context.get('user_type', 'buyer')
             
-        user = User.objects.create(**validated_data, type=user_type)
+        user = User.objects.create(**validated_data, type=self.context['view'].request.user.type)
         user.set_password(password)
 
         for contact in contact_data:
@@ -196,11 +196,11 @@ class ShopSerializer(DefaultModelSerializer):
     class Meta:
         model = Shop
         fields = ('url', 'id', 'name', 'state',)
-        read_only_fields = ('url', 'id',)
+        read_only_fields = ('url', 'id', 'name')
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    category = CategorySerializer(read_only=True)
+    category = CategorySerializer(read_only=True, label=t('Категория'), help_text=t('Категория товара'))
 
     class Meta:
         model = Product
@@ -208,7 +208,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class ProductParameterSerializer(DefaultModelSerializer):
-    parameter = serializers.StringRelatedField()
+    parameter = serializers.StringRelatedField(label=t('Параметр товара'), help_text=t('Параметр товара'))
 
     class Meta:
         model = ProductParameter
@@ -222,9 +222,9 @@ class ProductInfoSerializer(DefaultModelSerializer):
     CategorySerializer = ModelPresenter(Category, ('url', 'id', 'name', ))
     ProductSerializer = ModelPresenter(Product, ('name', 'category', ), {'category': CategorySerializer()})
 
-    product = ProductSerializer(read_only=True)
-    product_parameters = ProductParameterSerializer(read_only=True, many=True)
-    shop = ShopSerializer(read_only=True)
+    product = ProductSerializer(read_only=True, label=t('Товар'), help_text=t('ДАнные по товару'))
+    product_parameters = ProductParameterSerializer(read_only=True, many=True, label=t('Параметры'), help_text=t('Параметры товара'))
+    shop = ShopSerializer(read_only=True, label=t('Магазин'), help_text=t('Данные по магазину'))
 
     class Meta:
         model = ProductInfo
@@ -232,29 +232,93 @@ class ProductInfoSerializer(DefaultModelSerializer):
         read_only_fields = ('url', 'id',)
 
 
-class OrderItemSerializer(DefaultModelSerializer):
+class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
-        fields = ('url', 'id', 'product_info', 'quantity', 'order',)
-        read_only_fields = ('url', 'id',)
+        fields = ('id', 'product_info', 'quantity', 'order', )
+        read_only_fields = ('id',)
         extra_kwargs = {
             'order': {'write_only': True}
         }
 
 
-class OrderItemCreateSerializer(OrderItemSerializer):
-    product_info = ProductInfoSerializer(read_only=True)
+class AddOrderItemSerializer(DefaultModelSerializer):
+    items = serializers.JSONField(required=False)
+    product_info = serializers.PrimaryKeyRelatedField(queryset=ProductInfo.objects.all())
+    class Meta:
+        model = OrderItem
+        fields = ('product_info', 'quantity', 'items' )
+
+
+class ShowBasketSerializer(DefaultModelSerializer):
+    # ContactSerializer = ModelPresenter(Contact, ('url', 'person', 'phone'))
+    ShopSerializer = ModelPresenter(Shop, ('id', 'url', 'name', ))
+    # ProductSerializer = ModelPresenter(Product, ('name', ))
+    ProductInfoSerializer = ModelPresenter(ProductInfo, ('id', 'url', 'product', 'shop', 'price', 'price_rrc' ), {'product': serializers.StringRelatedField(), 'shop': ShopSerializer()})
+    OrderedItemsSerializer = ModelPresenter(OrderItem, ('id', 'product_info', 'quantity' ), {'product_info': ProductInfoSerializer()})
+
+    ordered_items = OrderedItemsSerializer(read_only=True, many=True, label=t('Заказанные товары'), help_text=t('Заказанные товары'))
+
+    total_sum = serializers.DecimalField(read_only=True, max_digits=20, decimal_places=2, min_value=0, label=t('Total'), help_text=t('Общая сумма'))
+    # contact = ContactSerializer(read_only=True, label=t('Контакт'), help_text=t('Контактные данные, указанные заказчиком'))
+
+    # url = serializers.HyperlinkedIdentityField(view_name='basket-list')
+
+    class Meta:
+        model = Order
+        fields = ('ordered_items', 'total_sum',)
 
 
 class OrderSerializer(DefaultModelSerializer):
-    ordered_items = OrderItemCreateSerializer(read_only=True, many=True)
+    OrderedItemsSerializer = ModelPresenter(OrderItem, ('product_info', ), {'product_info': ProductInfoSerializer()})
+    ordered_items = OrderedItemsSerializer(read_only=True, many=True, label=t('Заказанные товары'), help_text=t('Заказанные товары'))
 
-    total_sum = serializers.IntegerField()
-    contact = ContactSerializer(read_only=True)
+    total_sum = serializers.DecimalField(read_only=True, max_digits=20, decimal_places=2, min_value=0, label=t('Total'), help_text=t('Общая сумма'))
+    contact = ContactSerializer(read_only=True, label=t('Контакт'), help_text=t('Контактные данные, указанные заказчиком'))
 
     class Meta:
         model = Order
         fields = ('url', 'id', 'ordered_items', 'state', 'dt', 'total_sum', 'contact',)
-        read_only_fields = ('url', 'id', )
+        read_only_fields = ('url', 'id', 'state')
+
+
+class OrderItemsStringSerializer(DefaultModelSerializer):
+    # items = serializers.ListField(child=serializers.IntegerField(min_value=0))
+    items = serializers.CharField()
+    class Meta:
+        model = Order
+        fields = ('items', )
+
+
+class BusketSetQuantitySerializer(DefaultModelSerializer):
+    # items = serializers.ListField(child=serializers.IntegerField(min_value=0))
+    items = serializers.CharField()
+    id = serializers.IntegerField(min_value=0)
+    quantity = serializers.IntegerField(min_value=0)
+
+    class Meta:
+        model = Order
+        fields = ('items', 'id', 'quantity', )
+
+
+class CreateOrderSerializer(DefaultModelSerializer):
+
+    # class KeyField(serializers.PrimaryKeyRelatedField):
+    #     def get_queryset(self):
+    #         return Order.objects.filter(user_id=self.context['request'].user.id, state='basket') #.exclude(state='basket')
+
+
+    # id = KeyField(required=True, read_only=False, allow_null=False)
+
+    def get_fields(self, *args, **kwargs):
+        fields = super(CreateOrderSerializer, self).get_fields(*args, **kwargs)
+        fields['contact'].queryset = self.context['request'].user.contacts
+        return fields
+
+    class Meta:
+        model = Order
+        fields = ('contact', )
+        write_only_fields = ('contact', )
+        extra_kwargs = {'contact': {'required': True, 'allow_null': False}}
 
 

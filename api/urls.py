@@ -10,17 +10,9 @@ from rest_framework.schemas import get_schema_view
 from rest_framework.urlpatterns import format_suffix_patterns
 
 from core.routers import CustomDefaultRouter, CustomSimpleRouter #, CustomNestedSimpleRouter
-from .views import UserViewSet, PartnerViewSet, \
-    ShopViewSet, ProductInfoViewSet, \
+from .views import UserViewSet, PartnerViewSet, OrderViewSet, \
+    ShopViewSet, ProductInfoViewSet, BasketViewSet, \
     CategoryViewSet, ContactViewSet, ProductParametersViewSet
-
-# from .views import PartnerUpdate, LoginAccount, RegisterAccount, ConfirmAccount, AccountDetails, \
-#     CategoryView, CategoryDetailView, ContactView, ShopView, ShopDetailView, ProductInfoView, \
-#     api_root
-
-# from backend.views import \
-#     BasketView, \
-#     OrderView, PartnerState, PartnerOrders
 
 app_name = 'api'
 
@@ -37,6 +29,8 @@ router.register('categories', CategoryViewSet)
 router.register('shops', ShopViewSet)
 router.register('products', ProductInfoViewSet, 'productinfo')
 router.register('productparameters', ProductParametersViewSet, 'productparameter')
+router.register('orders', OrderViewSet, 'order')
+router.register('basket', BasketViewSet, 'basket')
 
 
 router.root_view_pre_items['api root'] = 'api-root'
@@ -58,9 +52,6 @@ router.root_view_pre_items['users/password_reset/confirm'] = 'password-reset-con
 urlpatterns = [
     re_path('^users/password_reset/?$', reset_password_request_token, name='password-reset'),
     re_path('^users/password_reset/confirm/?$', reset_password_confirm, name='password-reset-confirm'),
-
-    # path('products/', ProductInfoView.as_view(), name='products'), # default caching
-
     re_path('^docs/?$', cache_page(settings.CACHE_TIMES['OPENAPI'])(openapi_view), name='openapi-schema'),
     re_path('^swagger-ui/?$', cache_page(settings.CACHE_TIMES['SWAGGER'])(TemplateView.as_view(
         template_name='api/swagger-ui.html',
@@ -70,16 +61,10 @@ urlpatterns = [
         template_name='api/redoc.html',
         extra_context={'schema_url': f'{app_name}:openapi-schema'}
     )), name='redoc'),
-    
-
-    # path('partner/state', PartnerState.as_view(), name='partner-state'),
-    # path('partner/orders', PartnerOrders.as_view(), name='partner-orders'),
-    # path('basket', BasketView.as_view(), name='basket'),
-    # path('order', OrderView.as_view(), name='order'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
-urlpatterns += router.urls # + customer_contact_router.urls
+urlpatterns += router.urls
 
 
 ##########################################################################################################
