@@ -101,10 +101,7 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
-if DEBUG:
-    AUTH_PASSWORD_VALIDATORS = []
-else:
-    AUTH_PASSWORD_VALIDATORS = [
+NON_DEBUG_PASSWORD_VALIDATORS = [
         {
             'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
         },
@@ -118,6 +115,11 @@ else:
             'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
         },
     ]
+
+if DEBUG:
+    AUTH_PASSWORD_VALIDATORS = []
+else:
+    AUTH_PASSWORD_VALIDATORS = NON_DEBUG_PASSWORD_VALIDATORS
 
 
 # Internationalization
@@ -169,6 +171,13 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 40,
 
     'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+        'rest_framework_yaml.renderers.YAMLRenderer',
+        'rest_framework_xml.renderers.XMLRenderer',
+    ),
+
+    'TEST_REQUEST_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
         'rest_framework_yaml.renderers.YAMLRenderer',

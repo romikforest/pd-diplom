@@ -120,7 +120,7 @@ class RegisterUserSerializer(DefaultModelSerializer):
         for contact in contact_data:
             try:
                 contact = Contact.objects.create(user_id=user.id, **contact)
-                user.contacts.add(contact.id)
+                user.contacts.add(contact)
             except (DBError, ValidationError, ObjectDoesNotExist, PermissionDenied, FieldError, ConnectionDoesNotExist):
                 break
 
