@@ -1,9 +1,9 @@
 from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist, PermissionDenied, FieldError
+from django.db.utils import Error as DBError, ConnectionDoesNotExist
 from django.utils.translation import gettext_lazy as t
 from recaptcha.fields import ReCaptchaField
 from rest_framework import serializers
-
 
 from core.models import Category, Shop, ProductInfo, Product, ProductParameter, OrderItem, Order
 from core.serializers import DefaultSerializer, DefaultModelSerializer, ModelPresenter
@@ -79,7 +79,7 @@ class ListUserSerializer(DefaultModelSerializer):
 
     class Meta:
         model = User
-        fields = ('url', 'id', 'first_name', 'last_name', 'email', 'company', 'position', )
+        fields = ('url', 'id', 'first_name', 'last_name', 'email', 'company', 'position', 'Errors', 'Status', )
         read_only_fields = ('url', 'id', 'first_name', 'last_name', 'email', 'company', 'position', )
 
 
@@ -96,7 +96,7 @@ class RegisterUserSerializer(DefaultModelSerializer):
 
     class Meta:
         model = User
-        fields = ('url', 'id', 'first_name', 'last_name', 'email', 'company', 'position', 'password', 'password2', 'recaptcha', 'contacts')
+        fields = ('url', 'id', 'first_name', 'last_name', 'email', 'company', 'position', 'password', 'password2', 'recaptcha', 'contacts', 'Errors', 'Status',)
         read_only_fields = ('url', 'id',)
         extra_kwargs = {
             'first_name': {'required': True, 'allow_blank': False},
@@ -121,7 +121,7 @@ class RegisterUserSerializer(DefaultModelSerializer):
             try:
                 contact = Contact.objects.create(user_id=user.id, **contact)
                 user.contacts.add(contact.id)
-            except Exception:
+            except (DBError, ValidationError, ObjectDoesNotExist, PermissionDenied, FieldError, ConnectionDoesNotExist):
                 break
 
         user.save()
@@ -143,7 +143,7 @@ class UpdateUserDetailsSerializer(DefaultModelSerializer):
 
     class Meta:
         model = User
-        fields = ('url', 'id', 'first_name', 'last_name', 'email', 'company', 'position', 'password', 'contacts')
+        fields = ('url', 'id', 'first_name', 'last_name', 'email', 'company', 'position', 'password', 'contacts', 'Errors', 'Status', )
         read_only_fields = ('url', 'id',)
 
     def update(self, instance, validated_data):
@@ -160,7 +160,7 @@ class UpdateUserDetailsSerializer(DefaultModelSerializer):
                 try:
                     contact, _ = Contact.objects.get_or_create(user_id=instance.id, **contact)
                     instance.contacts.add(contact.id)
-                except Exception:
+                except (DBError, ValidationError, ObjectDoesNotExist, PermissionDenied, FieldError, ConnectionDoesNotExist):
                     break
 
         instance.save()
@@ -181,30 +181,30 @@ class ConfirmUserSerializer(DefaultSerializer):
 class CategorySerializer(DefaultModelSerializer):
     class Meta:
         model = Category
-        fields = ('url', 'id', 'name',)
-        read_only_fields = ('url', 'id',)
+        fields = ('url', 'id', 'name', 'Errors', 'Status', )
+        read_only_fields = ('url', 'id', )
 
 
 class CategoryDetailSerializer(DefaultModelSerializer):
     class Meta:
         model = Category
-        fields = ('url', 'id', 'name', 'shops')
-        read_only_fields = ('url', 'id',)
+        fields = ('url', 'id', 'name', 'shops', 'Errors', 'Status', )
+        read_only_fields = ('url', 'id', )
 
 
 class ShopSerializer(DefaultModelSerializer):
     class Meta:
         model = Shop
-        fields = ('url', 'id', 'name', 'state',)
-        read_only_fields = ('url', 'id', 'name')
+        fields = ('url', 'id', 'name', 'state', 'Errors', 'Status', )
+        read_only_fields = ('url', 'id', 'name', )
 
 
-class ProductSerializer(serializers.ModelSerializer):
-    category = CategorySerializer(read_only=True, label=t('Категория'), help_text=t('Категория товара'))
+# class ProductSerializer(serializers.ModelSerializer):
+#     category = CategorySerializer(read_only=True, label=t('Категория'), help_text=t('Категория товара'))
 
-    class Meta:
-        model = Product
-        fields = ('id', 'name', 'category')
+#     class Meta:
+#         model = Product
+#         fields = ('id', 'name', 'category')
 
 
 class ProductParameterSerializer(DefaultModelSerializer):
@@ -212,7 +212,7 @@ class ProductParameterSerializer(DefaultModelSerializer):
 
     class Meta:
         model = ProductParameter
-        fields = ('url', 'id', 'parameter', 'value',)
+        fields = ('url', 'id', 'parameter', 'value', 'Errors', 'Status', )
 
 
 class ProductInfoSerializer(DefaultModelSerializer):
@@ -228,18 +228,18 @@ class ProductInfoSerializer(DefaultModelSerializer):
 
     class Meta:
         model = ProductInfo
-        fields = ('url', 'id', 'product', 'shop', 'quantity', 'price', 'price_rrc', 'product_parameters',)
-        read_only_fields = ('url', 'id',)
+        fields = ('url', 'id', 'product', 'shop', 'quantity', 'price', 'price_rrc', 'product_parameters', 'Errors', 'Status', )
+        read_only_fields = ('url', 'id', )
 
 
-class OrderItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrderItem
-        fields = ('id', 'product_info', 'quantity', 'order', )
-        read_only_fields = ('id',)
-        extra_kwargs = {
-            'order': {'write_only': True}
-        }
+# class OrderItemSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = OrderItem
+#         fields = ('id', 'product_info', 'quantity', 'order', )
+#         read_only_fields = ('id',)
+#         extra_kwargs = {
+#             'order': {'write_only': True}
+#         }
 
 
 class AddOrderItemSerializer(DefaultModelSerializer):
@@ -247,7 +247,7 @@ class AddOrderItemSerializer(DefaultModelSerializer):
     product_info = serializers.PrimaryKeyRelatedField(queryset=ProductInfo.objects.all())
     class Meta:
         model = OrderItem
-        fields = ('product_info', 'quantity', 'items' )
+        fields = ('product_info', 'quantity', 'items', 'Errors', 'Status', )
 
 
 class ShowBasketSerializer(DefaultModelSerializer):
@@ -266,7 +266,7 @@ class ShowBasketSerializer(DefaultModelSerializer):
 
     class Meta:
         model = Order
-        fields = ('ordered_items', 'total_sum',)
+        fields = ('ordered_items', 'total_sum', 'Errors', 'Status', )
 
 
 class OrderSerializer(DefaultModelSerializer):
@@ -278,7 +278,7 @@ class OrderSerializer(DefaultModelSerializer):
 
     class Meta:
         model = Order
-        fields = ('url', 'id', 'ordered_items', 'state', 'dt', 'total_sum', 'contact',)
+        fields = ('url', 'id', 'ordered_items', 'state', 'dt', 'total_sum', 'contact', 'Errors', 'Status', )
         read_only_fields = ('url', 'id', 'state')
 
 
@@ -287,7 +287,7 @@ class OrderItemsStringSerializer(DefaultModelSerializer):
     items = serializers.CharField()
     class Meta:
         model = Order
-        fields = ('items', )
+        fields = ('items', 'Errors', 'Status',  )
 
 
 class BusketSetQuantitySerializer(DefaultModelSerializer):
@@ -298,7 +298,7 @@ class BusketSetQuantitySerializer(DefaultModelSerializer):
 
     class Meta:
         model = Order
-        fields = ('items', 'id', 'quantity', )
+        fields = ('items', 'id', 'quantity', 'Errors', 'Status',  )
 
 
 class CreateOrderSerializer(DefaultModelSerializer):
@@ -312,12 +312,13 @@ class CreateOrderSerializer(DefaultModelSerializer):
 
     def get_fields(self, *args, **kwargs):
         fields = super(CreateOrderSerializer, self).get_fields(*args, **kwargs)
-        fields['contact'].queryset = self.context['request'].user.contacts
+        if self.context['request']:
+            fields['contact'].queryset = self.context['request'].user.contacts
         return fields
 
     class Meta:
         model = Order
-        fields = ('contact', )
+        fields = ('contact', 'Errors', 'Status', )
         write_only_fields = ('contact', )
         extra_kwargs = {'contact': {'required': True, 'allow_null': False}}
 

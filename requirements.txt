@@ -15,7 +15,6 @@ django-rest-recaptcha==1.0.2
 djangorestframework==3.10.2
 djangorestframework-xml==1.4.0
 djangorestframework-yaml==1.0.3
-drf-nested-routers==0.91
 gevent==1.4.0
 greenlet==0.4.15
 idna==2.8

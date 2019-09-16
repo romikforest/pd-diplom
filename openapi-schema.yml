@@ -1,0 +1,5077 @@
+openapi: 3.0.2
+info:
+  title: ''
+  version: TODO
+paths:
+  /api/v1/users/:
+    get:
+      operationId: ListUsers
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id001
+              schema:
+                required: []
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  id:
+                    type: integer
+                    readOnly: true
+                  first_name:
+                    type: string
+                    readOnly: true
+                  last_name:
+                    type: string
+                    readOnly: true
+                  email:
+                    type: string
+                    format: email
+                    readOnly: true
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 email\
+                      \ \u0430\u0434\u0440\u0435\u0441"
+                  company:
+                    type: string
+                    readOnly: true
+                    description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043A\
+                      \u043E\u043C\u043F\u0430\u043D\u0438\u044E"
+                  position:
+                    type: string
+                    readOnly: true
+                    description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0434\
+                      \u043E\u043B\u0436\u043D\u043E\u0441\u0442\u044C"
+                  Status: &id002
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id001
+            application/xml: *id001
+            text/html: *id001
+          description: OK
+        '401':
+          content:
+            application/json: &id003
+              schema:
+                required: []
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id002
+                xml:
+                  name: root
+            application/yaml: *id003
+            application/xml: *id003
+            text/html: *id003
+          description: Auth required...
+      description: "\u0421\u043F\u0438\u0441\u043E\u043A \u043F\u043E\u043B\u044C\u0437\
+        \u043E\u0432\u0430\u0442\u0435\u043B\u0435\u0439 (\u043F\u043E\u043A\u0443\
+        \u043F\u0430\u0442\u0435\u043B\u044C)"
+  /api/v1/users/captcha/:
+    get:
+      operationId: captchaUser
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id004
+              schema:
+                required: []
+                properties:
+                  Status:
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                  public_key:
+                    type: string
+                    readOnly: true
+                    description: reCaptcha public key
+                xml:
+                  name: root
+            application/yaml: *id004
+            application/xml: *id004
+            text/html: *id004
+          description: OK
+      description: "\u0417\u0430\u043F\u0440\u043E\u0441 \u043F\u0443\u0431\u043B\u0438\
+        \u0447\u043D\u043E\u0433\u043E \u043A\u043B\u044E\u0447\u0430 \u0434\u043B\
+        \u044F reCaptcha (\u043F\u043E\u043A\u0443\u043F\u0430\u0442\u0435\u043B\u044C\
+        )"
+  /api/v1/users/details/:
+    get:
+      operationId: detailsUser
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id005
+              schema:
+                required:
+                - email
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  id:
+                    type: integer
+                    readOnly: true
+                  Status: &id006
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id005
+            application/xml: *id005
+            text/html: *id005
+          description: OK
+        '401':
+          content:
+            application/json: &id007
+              schema:
+                required:
+                - email
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id006
+                xml:
+                  name: root
+            application/yaml: *id007
+            application/xml: *id007
+            text/html: *id007
+          description: Auth required...
+      description: "\u0418\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u044F \u043E\
+        \u0431 \u0430\u043A\u0430\u0443\u043D\u0442\u0435 \u043F\u043E\u043B\u044C\
+        \u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F (\u043F\u043E\u043A\u0443\
+        \u043F\u0430\u0442\u0435\u043B\u044C)"
+    put:
+      operationId: detailsUser
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id008
+            schema:
+              required:
+              - email
+              - password
+              properties:
+                first_name:
+                  type: string
+                  maxLength: 30
+                last_name:
+                  type: string
+                  maxLength: 150
+                email:
+                  type: string
+                  format: email
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 email \u0430\
+                    \u0434\u0440\u0435\u0441"
+                  maxLength: 254
+                company:
+                  type: string
+                  description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043A\u043E\
+                    \u043C\u043F\u0430\u043D\u0438\u044E"
+                  maxLength: 40
+                position:
+                  type: string
+                  description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0434\u043E\
+                    \u043B\u0436\u043D\u043E\u0441\u0442\u044C"
+                  maxLength: 40
+                password:
+                  type: string
+                  writeOnly: true
+                  description: Iput password
+                contacts:
+                  type: array
+                  items:
+                    required: []
+                    properties:
+                      url:
+                        type: string
+                        readOnly: true
+                      Errors:
+                        type: string
+                        readOnly: true
+                        description: Error message(s)
+                      Status:
+                        type: boolean
+                        readOnly: true
+                        description: Http Status code
+                      person:
+                        type: string
+                        description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u043D\
+                          \u043E\u0435 \u043B\u0438\u0446\u043E"
+                        maxLength: 50
+                      phone:
+                        type: string
+                        nullable: true
+                        description: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D"
+                        maxLength: 128
+                      city:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0433\
+                          \u043E\u0440\u043E\u0434"
+                        maxLength: 50
+                      street:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0443\
+                          \u043B\u0438\u0446\u0443"
+                        maxLength: 100
+                      house:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0434\
+                          \u043E\u043C"
+                        maxLength: 15
+                      structure:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                          \u043E\u0440\u043F\u0443\u0441"
+                        maxLength: 15
+                      building:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\
+                          \u0442\u0440\u043E\u0435\u043D\u0438\u0435"
+                        maxLength: 15
+                      apartment:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                          \u0432\u0430\u0440\u0442\u0438\u0440\u0443"
+                        maxLength: 15
+                      user:
+                        type: string
+                        readOnly: true
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id008
+          application/xml: *id008
+          application/yaml: *id008
+          multipart/form-data: *id008
+      responses:
+        '200':
+          content:
+            application/json: &id009
+              schema:
+                required:
+                - email
+                properties:
+                  url: &id012
+                    type: string
+                    readOnly: true
+                  id: &id013
+                    type: integer
+                    readOnly: true
+                  Status: &id010
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id009
+            application/xml: *id009
+            text/html: *id009
+          description: OK
+        '401':
+          content:
+            application/json: &id011
+              schema:
+                required:
+                - email
+                properties:
+                  Errors: &id014
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id010
+                xml:
+                  name: root
+            application/yaml: *id011
+            application/xml: *id011
+            text/html: *id011
+          description: Auth required...
+        '400':
+          content:
+            application/json: &id015
+              schema:
+                required:
+                - email
+                properties:
+                  url: *id012
+                  id: *id013
+                  first_name:
+                    type: string
+                    maxLength: 30
+                  last_name:
+                    type: string
+                    maxLength: 150
+                  email:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 email\
+                      \ \u0430\u0434\u0440\u0435\u0441"
+                    maxLength: 254
+                  company:
+                    type: string
+                    description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043A\
+                      \u043E\u043C\u043F\u0430\u043D\u0438\u044E"
+                    maxLength: 40
+                  position:
+                    type: string
+                    description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0434\
+                      \u043E\u043B\u0436\u043D\u043E\u0441\u0442\u044C"
+                    maxLength: 40
+                  contacts:
+                    type: string
+                    items:
+                      required: []
+                      properties:
+                        url:
+                          type: string
+                          readOnly: true
+                        Errors:
+                          type: string
+                          readOnly: true
+                          description: Error message(s)
+                        Status:
+                          type: boolean
+                          readOnly: true
+                          description: Http Status code
+                        person:
+                          type: string
+                          description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\
+                            \u043D\u043E\u0435 \u043B\u0438\u0446\u043E"
+                          maxLength: 50
+                        phone:
+                          type: string
+                          nullable: true
+                          description: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D"
+                          maxLength: 128
+                        city:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u0433\u043E\u0440\u043E\u0434"
+                          maxLength: 50
+                        street:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u0443\u043B\u0438\u0446\u0443"
+                          maxLength: 100
+                        house:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u0434\u043E\u043C"
+                          maxLength: 15
+                        structure:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u043A\u043E\u0440\u043F\u0443\u0441"
+                          maxLength: 15
+                        building:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u0441\u0442\u0440\u043E\u0435\u043D\u0438\u0435"
+                          maxLength: 15
+                        apartment:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u043A\u0432\u0430\u0440\u0442\u0438\u0440\u0443"
+                          maxLength: 15
+                        user:
+                          type: string
+                          readOnly: true
+                  Errors: *id014
+                  Status: *id010
+                xml:
+                  name: root
+            application/yaml: *id015
+            application/xml: *id015
+            text/html: *id015
+          description: Error in input data
+      description: "\u0418\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u044F \u043E\
+        \u0431 \u0430\u043A\u0430\u0443\u043D\u0442\u0435 \u043F\u043E\u043B\u044C\
+        \u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F (\u043F\u043E\u043A\u0443\
+        \u043F\u0430\u0442\u0435\u043B\u044C)"
+  /api/v1/users/{id}/:
+    get:
+      operationId: retrieveUser
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: "A unique integer value identifying this \u041F\u043E\u043B\u044C\
+          \u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C."
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id016
+              schema:
+                required:
+                - email
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  id:
+                    type: integer
+                    readOnly: true
+                  Status: &id017
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id016
+            application/xml: *id016
+            text/html: *id016
+          description: OK
+        '401':
+          content:
+            application/json: &id018
+              schema:
+                required:
+                - email
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id017
+                xml:
+                  name: root
+            application/yaml: *id018
+            application/xml: *id018
+            text/html: *id018
+          description: Auth required...
+      description: "\u0418\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u044F \u043E\
+        \ \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u0435\
+        \ (\u043F\u043E\u043A\u0443\u043F\u0430\u0442\u0435\u043B\u044C)"
+  /api/v1/partners/:
+    get:
+      operationId: ListUsers
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id019
+              schema:
+                required: []
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  id:
+                    type: integer
+                    readOnly: true
+                  first_name:
+                    type: string
+                    readOnly: true
+                  last_name:
+                    type: string
+                    readOnly: true
+                  email:
+                    type: string
+                    format: email
+                    readOnly: true
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 email\
+                      \ \u0430\u0434\u0440\u0435\u0441"
+                  company:
+                    type: string
+                    readOnly: true
+                    description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043A\
+                      \u043E\u043C\u043F\u0430\u043D\u0438\u044E"
+                  position:
+                    type: string
+                    readOnly: true
+                    description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0434\
+                      \u043E\u043B\u0436\u043D\u043E\u0441\u0442\u044C"
+                  Status: &id020
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id019
+            application/xml: *id019
+            text/html: *id019
+          description: OK
+        '401':
+          content:
+            application/json: &id021
+              schema:
+                required: []
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id020
+                xml:
+                  name: root
+            application/yaml: *id021
+            application/xml: *id021
+            text/html: *id021
+          description: Auth required...
+      description: "\u0421\u043F\u0438\u0441\u043E\u043A \u043F\u043E\u043B\u044C\u0437\
+        \u043E\u0432\u0430\u0442\u0435\u043B\u0435\u0439 (\u043F\u043E\u0441\u0442\
+        \u0430\u0432\u0449\u0438\u043A)"
+  /api/v1/partners/captcha/:
+    get:
+      operationId: captchaUser
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id022
+              schema:
+                required: []
+                properties:
+                  Status:
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                  public_key:
+                    type: string
+                    readOnly: true
+                    description: reCaptcha public key
+                xml:
+                  name: root
+            application/yaml: *id022
+            application/xml: *id022
+            text/html: *id022
+          description: OK
+      description: "\u0417\u0430\u043F\u0440\u043E\u0441 \u043F\u0443\u0431\u043B\u0438\
+        \u0447\u043D\u043E\u0433\u043E \u043A\u043B\u044E\u0447\u0430 \u0434\u043B\
+        \u044F reCaptcha (\u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A)"
+  /api/v1/partners/details/:
+    get:
+      operationId: detailsUser
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id023
+              schema:
+                required:
+                - email
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  id:
+                    type: integer
+                    readOnly: true
+                  Status: &id024
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id023
+            application/xml: *id023
+            text/html: *id023
+          description: OK
+        '401':
+          content:
+            application/json: &id025
+              schema:
+                required:
+                - email
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id024
+                xml:
+                  name: root
+            application/yaml: *id025
+            application/xml: *id025
+            text/html: *id025
+          description: Auth required...
+      description: "\u0418\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u044F \u043E\
+        \u0431 \u0430\u043A\u0430\u0443\u043D\u0442\u0435 \u043F\u043E\u043B\u044C\
+        \u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F (\u043F\u043E\u0441\u0442\
+        \u0430\u0432\u0449\u0438\u043A)"
+    put:
+      operationId: detailsUser
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id026
+            schema:
+              required:
+              - email
+              - password
+              properties:
+                first_name:
+                  type: string
+                  maxLength: 30
+                last_name:
+                  type: string
+                  maxLength: 150
+                email:
+                  type: string
+                  format: email
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 email \u0430\
+                    \u0434\u0440\u0435\u0441"
+                  maxLength: 254
+                company:
+                  type: string
+                  description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043A\u043E\
+                    \u043C\u043F\u0430\u043D\u0438\u044E"
+                  maxLength: 40
+                position:
+                  type: string
+                  description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0434\u043E\
+                    \u043B\u0436\u043D\u043E\u0441\u0442\u044C"
+                  maxLength: 40
+                password:
+                  type: string
+                  writeOnly: true
+                  description: Iput password
+                contacts:
+                  type: array
+                  items:
+                    required: []
+                    properties:
+                      url:
+                        type: string
+                        readOnly: true
+                      Errors:
+                        type: string
+                        readOnly: true
+                        description: Error message(s)
+                      Status:
+                        type: boolean
+                        readOnly: true
+                        description: Http Status code
+                      person:
+                        type: string
+                        description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u043D\
+                          \u043E\u0435 \u043B\u0438\u0446\u043E"
+                        maxLength: 50
+                      phone:
+                        type: string
+                        nullable: true
+                        description: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D"
+                        maxLength: 128
+                      city:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0433\
+                          \u043E\u0440\u043E\u0434"
+                        maxLength: 50
+                      street:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0443\
+                          \u043B\u0438\u0446\u0443"
+                        maxLength: 100
+                      house:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0434\
+                          \u043E\u043C"
+                        maxLength: 15
+                      structure:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                          \u043E\u0440\u043F\u0443\u0441"
+                        maxLength: 15
+                      building:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\
+                          \u0442\u0440\u043E\u0435\u043D\u0438\u0435"
+                        maxLength: 15
+                      apartment:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                          \u0432\u0430\u0440\u0442\u0438\u0440\u0443"
+                        maxLength: 15
+                      user:
+                        type: string
+                        readOnly: true
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id026
+          application/xml: *id026
+          application/yaml: *id026
+          multipart/form-data: *id026
+      responses:
+        '200':
+          content:
+            application/json: &id027
+              schema:
+                required:
+                - email
+                properties:
+                  url: &id030
+                    type: string
+                    readOnly: true
+                  id: &id031
+                    type: integer
+                    readOnly: true
+                  Status: &id028
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id027
+            application/xml: *id027
+            text/html: *id027
+          description: OK
+        '401':
+          content:
+            application/json: &id029
+              schema:
+                required:
+                - email
+                properties:
+                  Errors: &id032
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id028
+                xml:
+                  name: root
+            application/yaml: *id029
+            application/xml: *id029
+            text/html: *id029
+          description: Auth required...
+        '400':
+          content:
+            application/json: &id033
+              schema:
+                required:
+                - email
+                properties:
+                  url: *id030
+                  id: *id031
+                  first_name:
+                    type: string
+                    maxLength: 30
+                  last_name:
+                    type: string
+                    maxLength: 150
+                  email:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 email\
+                      \ \u0430\u0434\u0440\u0435\u0441"
+                    maxLength: 254
+                  company:
+                    type: string
+                    description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043A\
+                      \u043E\u043C\u043F\u0430\u043D\u0438\u044E"
+                    maxLength: 40
+                  position:
+                    type: string
+                    description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0434\
+                      \u043E\u043B\u0436\u043D\u043E\u0441\u0442\u044C"
+                    maxLength: 40
+                  contacts:
+                    type: string
+                    items:
+                      required: []
+                      properties:
+                        url:
+                          type: string
+                          readOnly: true
+                        Errors:
+                          type: string
+                          readOnly: true
+                          description: Error message(s)
+                        Status:
+                          type: boolean
+                          readOnly: true
+                          description: Http Status code
+                        person:
+                          type: string
+                          description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\
+                            \u043D\u043E\u0435 \u043B\u0438\u0446\u043E"
+                          maxLength: 50
+                        phone:
+                          type: string
+                          nullable: true
+                          description: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D"
+                          maxLength: 128
+                        city:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u0433\u043E\u0440\u043E\u0434"
+                          maxLength: 50
+                        street:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u0443\u043B\u0438\u0446\u0443"
+                          maxLength: 100
+                        house:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u0434\u043E\u043C"
+                          maxLength: 15
+                        structure:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u043A\u043E\u0440\u043F\u0443\u0441"
+                          maxLength: 15
+                        building:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u0441\u0442\u0440\u043E\u0435\u043D\u0438\u0435"
+                          maxLength: 15
+                        apartment:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u043A\u0432\u0430\u0440\u0442\u0438\u0440\u0443"
+                          maxLength: 15
+                        user:
+                          type: string
+                          readOnly: true
+                  Errors: *id032
+                  Status: *id028
+                xml:
+                  name: root
+            application/yaml: *id033
+            application/xml: *id033
+            text/html: *id033
+          description: Error in input data
+      description: "\u0418\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u044F \u043E\
+        \u0431 \u0430\u043A\u0430\u0443\u043D\u0442\u0435 \u043F\u043E\u043B\u044C\
+        \u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F (\u043F\u043E\u0441\u0442\
+        \u0430\u0432\u0449\u0438\u043A)"
+  /api/v1/partners/orders/:
+    get:
+      operationId: ordersUser
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id034
+              schema:
+                required: []
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  id:
+                    type: integer
+                    readOnly: true
+                  ordered_items:
+                    type: array
+                    items:
+                      required:
+                      - product_info
+                      properties:
+                        product_info:
+                          required:
+                          - quantity
+                          - price
+                          - price_rrc
+                          properties:
+                            url:
+                              type: string
+                              readOnly: true
+                            id:
+                              type: integer
+                              readOnly: true
+                            product:
+                              required:
+                              - name
+                              - category
+                              properties:
+                                name:
+                                  type: string
+                                  maxLength: 80
+                                category:
+                                  required:
+                                  - name
+                                  properties:
+                                    url:
+                                      type: string
+                                      readOnly: true
+                                    id:
+                                      type: integer
+                                      readOnly: true
+                                    name:
+                                      type: string
+                                      maxLength: 40
+                                  type: object
+                              type: object
+                              readOnly: true
+                              description: "\u0414\u0410\u043D\u043D\u044B\u0435 \u043F\
+                                \u043E \u0442\u043E\u0432\u0430\u0440\u0443"
+                            shop:
+                              required:
+                              - name
+                              properties:
+                                url:
+                                  type: string
+                                  format: uri
+                                  nullable: true
+                                  maxLength: 200
+                                  pattern: "^(?:[a-z0-9\\.\\-\\+]*)://(?:[^\\s:@/]+(?::[^\\\
+                                    s:@/]*)?@)?(?:(?:25[0-5]|2[0-4]\\d|[0-1]?\\d?\\\
+                                    d)(?:\\.(?:25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}|\\\
+                                    [[0-9a-f:\\.]+\\]|([a-z\xA1-\uFFFF0-9](?:[a-z\xA1\
+                                    -\uFFFF0-9-]{0,61}[a-z\xA1-\uFFFF0-9])?(?:\\.(?!-)[a-z\xA1\
+                                    -\uFFFF0-9-]{1,63}(?<!-))*\\.(?!-)(?:[a-z\xA1\
+                                    -\uFFFF-]{2,63}|xn--[a-z0-9]{1,59})(?<!-)\\.?|localhost))(?::\\\
+                                    d{2,5})?(?:[/?#][^\\s]*)?\\Z"
+                                name:
+                                  type: string
+                                  maxLength: 50
+                              type: object
+                              readOnly: true
+                              description: "\u0414\u0430\u043D\u043D\u044B\u0435 \u043F\
+                                \u043E \u043C\u0430\u0433\u0430\u0437\u0438\u043D\u0443"
+                            quantity:
+                              type: integer
+                            price:
+                              type: number
+                              multipleOf: 0.01
+                              maximum: 1000000000000000000
+                              minimum: 0
+                            price_rrc:
+                              type: number
+                              multipleOf: 0.01
+                              maximum: 1000000000000000000
+                              minimum: 0
+                            product_parameters:
+                              type: array
+                              items:
+                                required:
+                                - value
+                                properties:
+                                  parameter:
+                                    type: string
+                                    readOnly: true
+                                  value:
+                                    type: string
+                                    maxLength: 100
+                              readOnly: true
+                              description: "\u041F\u0430\u0440\u0430\u043C\u0435\u0442\
+                                \u0440\u044B \u0442\u043E\u0432\u0430\u0440\u0430"
+                            Errors:
+                              type: string
+                              readOnly: true
+                              description: Error message(s)
+                            Status:
+                              type: boolean
+                              readOnly: true
+                              description: Http Status code
+                          type: object
+                    readOnly: true
+                    description: "\u0417\u0430\u043A\u0430\u0437\u0430\u043D\u043D\
+                      \u044B\u0435 \u0442\u043E\u0432\u0430\u0440\u044B"
+                  state:
+                    enum:
+                    - basket
+                    - new
+                    - confirmed
+                    - assembled
+                    - sent
+                    - delivered
+                    - canceled
+                    readOnly: true
+                  dt:
+                    type: string
+                    format: date-time
+                    readOnly: true
+                  total_sum:
+                    type: number
+                    multipleOf: 0.01
+                    maximum: 1000000000000000000
+                    minimum: 0
+                    readOnly: true
+                    description: "\u041E\u0431\u0449\u0430\u044F \u0441\u0443\u043C\
+                      \u043C\u0430"
+                  contact:
+                    required: []
+                    properties:
+                      url:
+                        type: string
+                        readOnly: true
+                      Errors:
+                        type: string
+                        readOnly: true
+                        description: Error message(s)
+                      Status:
+                        type: boolean
+                        readOnly: true
+                        description: Http Status code
+                      person:
+                        type: string
+                        description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u043D\
+                          \u043E\u0435 \u043B\u0438\u0446\u043E"
+                        maxLength: 50
+                      phone:
+                        type: string
+                        nullable: true
+                        description: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D"
+                        maxLength: 128
+                      city:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0433\
+                          \u043E\u0440\u043E\u0434"
+                        maxLength: 50
+                      street:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0443\
+                          \u043B\u0438\u0446\u0443"
+                        maxLength: 100
+                      house:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0434\
+                          \u043E\u043C"
+                        maxLength: 15
+                      structure:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                          \u043E\u0440\u043F\u0443\u0441"
+                        maxLength: 15
+                      building:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\
+                          \u0442\u0440\u043E\u0435\u043D\u0438\u0435"
+                        maxLength: 15
+                      apartment:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                          \u0432\u0430\u0440\u0442\u0438\u0440\u0443"
+                        maxLength: 15
+                      user:
+                        type: string
+                        readOnly: true
+                    type: object
+                    readOnly: true
+                    description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u043D\
+                      \u044B\u0435 \u0434\u0430\u043D\u043D\u044B\u0435, \u0443\u043A\
+                      \u0430\u0437\u0430\u043D\u043D\u044B\u0435 \u0437\u0430\u043A\
+                      \u0430\u0437\u0447\u0438\u043A\u043E\u043C"
+                  Status: &id035
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id034
+            application/xml: *id034
+            text/html: *id034
+          description: OK
+        '401':
+          content: &id037
+            application/json: &id036
+              schema:
+                required: []
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id035
+                xml:
+                  name: root
+            application/yaml: *id036
+            application/xml: *id036
+            text/html: *id036
+          description: Auth required...
+        '403':
+          content: *id037
+          description: Forbidden...
+      description: "\u041F\u0440\u043E\u0441\u043C\u043E\u0442\u0440 \u0437\u0430\u043A\
+        \u0430\u0437\u043E\u0432 \u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A\
+        \u0430\u043C\u0438 (\u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A\
+        )"
+  /api/v1/partners/state/:
+    get:
+      operationId: stateUser
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id038
+              schema:
+                required: []
+                properties:
+                  url:
+                    type: string
+                    format: uri
+                    readOnly: true
+                    pattern: "^(?:[a-z0-9\\.\\-\\+]*)://(?:[^\\s:@/]+(?::[^\\s:@/]*)?@)?(?:(?:25[0-5]|2[0-4]\\\
+                      d|[0-1]?\\d?\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}|\\\
+                      [[0-9a-f:\\.]+\\]|([a-z\xA1-\uFFFF0-9](?:[a-z\xA1-\uFFFF0-9-]{0,61}[a-z\xA1\
+                      -\uFFFF0-9])?(?:\\.(?!-)[a-z\xA1-\uFFFF0-9-]{1,63}(?<!-))*\\\
+                      .(?!-)(?:[a-z\xA1-\uFFFF-]{2,63}|xn--[a-z0-9]{1,59})(?<!-)\\\
+                      .?|localhost))(?::\\d{2,5})?(?:[/?#][^\\s]*)?\\Z"
+                  id:
+                    type: integer
+                    readOnly: true
+                  name:
+                    type: string
+                    readOnly: true
+                  Status: &id039
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id038
+            application/xml: *id038
+            text/html: *id038
+          description: OK
+        '401':
+          content: &id041
+            application/json: &id040
+              schema:
+                required: []
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id039
+                xml:
+                  name: root
+            application/yaml: *id040
+            application/xml: *id040
+            text/html: *id040
+          description: Auth required...
+        '403':
+          content: *id041
+          description: Forbidden...
+      description: "\u0410\u043A\u0442\u0438\u0432\u0430\u0446\u0438\u044F / \u0434\
+        \u0435\u0430\u043A\u0442\u0438\u0432\u0430\u0446\u0438\u044F \u043C\u0430\u0433\
+        \u0430\u0437\u0438\u043D\u0430 (\u043F\u043E\u0441\u0442\u0430\u0432\u0449\
+        \u0438\u043A)"
+    put:
+      operationId: stateUser
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id042
+            schema:
+              required: []
+              properties:
+                state:
+                  type: boolean
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id042
+          application/xml: *id042
+          application/yaml: *id042
+          multipart/form-data: *id042
+      responses:
+        '200':
+          content:
+            application/json: &id043
+              schema:
+                required: []
+                properties:
+                  url: &id047
+                    type: string
+                    format: uri
+                    readOnly: true
+                    pattern: "^(?:[a-z0-9\\.\\-\\+]*)://(?:[^\\s:@/]+(?::[^\\s:@/]*)?@)?(?:(?:25[0-5]|2[0-4]\\\
+                      d|[0-1]?\\d?\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}|\\\
+                      [[0-9a-f:\\.]+\\]|([a-z\xA1-\uFFFF0-9](?:[a-z\xA1-\uFFFF0-9-]{0,61}[a-z\xA1\
+                      -\uFFFF0-9])?(?:\\.(?!-)[a-z\xA1-\uFFFF0-9-]{1,63}(?<!-))*\\\
+                      .(?!-)(?:[a-z\xA1-\uFFFF-]{2,63}|xn--[a-z0-9]{1,59})(?<!-)\\\
+                      .?|localhost))(?::\\d{2,5})?(?:[/?#][^\\s]*)?\\Z"
+                  id: &id048
+                    type: integer
+                    readOnly: true
+                  name: &id049
+                    type: string
+                    readOnly: true
+                  Status: &id044
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id043
+            application/xml: *id043
+            text/html: *id043
+          description: OK
+        '401':
+          content: &id046
+            application/json: &id045
+              schema:
+                required: []
+                properties:
+                  Errors: &id050
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id044
+                xml:
+                  name: root
+            application/yaml: *id045
+            application/xml: *id045
+            text/html: *id045
+          description: Auth required...
+        '403':
+          content: *id046
+          description: Forbidden...
+        '400':
+          content:
+            application/json: &id051
+              schema:
+                required: []
+                properties:
+                  url: *id047
+                  id: *id048
+                  name: *id049
+                  state:
+                    type: string
+                  Errors: *id050
+                  Status: *id044
+                xml:
+                  name: root
+            application/yaml: *id051
+            application/xml: *id051
+            text/html: *id051
+          description: Error in input data
+      description: "\u0410\u043A\u0442\u0438\u0432\u0430\u0446\u0438\u044F / \u0434\
+        \u0435\u0430\u043A\u0442\u0438\u0432\u0430\u0446\u0438\u044F \u043C\u0430\u0433\
+        \u0430\u0437\u0438\u043D\u0430 (\u043F\u043E\u0441\u0442\u0430\u0432\u0449\
+        \u0438\u043A)"
+  /api/v1/partners/{id}/:
+    get:
+      operationId: retrieveUser
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: "A unique integer value identifying this \u041F\u043E\u043B\u044C\
+          \u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C."
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id052
+              schema:
+                required:
+                - email
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  id:
+                    type: integer
+                    readOnly: true
+                  Status: &id053
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id052
+            application/xml: *id052
+            text/html: *id052
+          description: OK
+        '401':
+          content:
+            application/json: &id054
+              schema:
+                required:
+                - email
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id053
+                xml:
+                  name: root
+            application/yaml: *id054
+            application/xml: *id054
+            text/html: *id054
+          description: Auth required...
+      description: "\u0418\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u044F \u043E\
+        \ \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u0435\
+        \ (\u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A)"
+  /api/v1/contacts/:
+    get:
+      operationId: ListContacts
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id055
+              schema:
+                required: []
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  Status: &id056
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                  user:
+                    type: string
+                    readOnly: true
+                xml:
+                  name: root
+            application/yaml: *id055
+            application/xml: *id055
+            text/html: *id055
+          description: OK
+        '401':
+          content:
+            application/json: &id057
+              schema:
+                required: []
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id056
+                xml:
+                  name: root
+            application/yaml: *id057
+            application/xml: *id057
+            text/html: *id057
+          description: Auth required...
+      description: "\u0421\u043F\u0438\u0441\u043E\u043A \u043A\u043E\u043D\u0442\u0430\
+        \u043A\u0442\u043E\u0432 \u0442\u0435\u043A\u0443\u0449\u0435\u0433\u043E\
+        \ \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F"
+    post:
+      operationId: createContact
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id058
+            schema:
+              required: []
+              properties:
+                person:
+                  type: string
+                  description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u043D\u043E\
+                    \u0435 \u043B\u0438\u0446\u043E"
+                  maxLength: 50
+                phone:
+                  type: string
+                  nullable: true
+                  description: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D"
+                  maxLength: 128
+                city:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0433\u043E\
+                    \u0440\u043E\u0434"
+                  maxLength: 50
+                street:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0443\u043B\
+                    \u0438\u0446\u0443"
+                  maxLength: 100
+                house:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0434\u043E\
+                    \u043C"
+                  maxLength: 15
+                structure:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\u043E\
+                    \u0440\u043F\u0443\u0441"
+                  maxLength: 15
+                building:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\u0442\
+                    \u0440\u043E\u0435\u043D\u0438\u0435"
+                  maxLength: 15
+                apartment:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\u0432\
+                    \u0430\u0440\u0442\u0438\u0440\u0443"
+                  maxLength: 15
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id058
+          application/xml: *id058
+          application/yaml: *id058
+          multipart/form-data: *id058
+      responses:
+        '201':
+          content:
+            application/json: &id059
+              schema:
+                required: []
+                properties:
+                  url: &id062
+                    type: string
+                    readOnly: true
+                  Status: &id060
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                  user: &id064
+                    type: string
+                    readOnly: true
+                xml:
+                  name: root
+            application/yaml: *id059
+            application/xml: *id059
+            text/html: *id059
+          description: Created
+        '401':
+          content:
+            application/json: &id061
+              schema:
+                required: []
+                properties:
+                  Errors: &id063
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id060
+                xml:
+                  name: root
+            application/yaml: *id061
+            application/xml: *id061
+            text/html: *id061
+          description: Auth required...
+        '400':
+          content:
+            application/json: &id065
+              schema:
+                required: []
+                properties:
+                  url: *id062
+                  Errors: *id063
+                  Status: *id060
+                  person:
+                    type: string
+                    description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u043D\
+                      \u043E\u0435 \u043B\u0438\u0446\u043E"
+                    maxLength: 50
+                  phone:
+                    type: string
+                    nullable: true
+                    description: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D"
+                    maxLength: 128
+                  city:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0433\
+                      \u043E\u0440\u043E\u0434"
+                    maxLength: 50
+                  street:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0443\
+                      \u043B\u0438\u0446\u0443"
+                    maxLength: 100
+                  house:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0434\
+                      \u043E\u043C"
+                    maxLength: 15
+                  structure:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                      \u043E\u0440\u043F\u0443\u0441"
+                    maxLength: 15
+                  building:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\
+                      \u0442\u0440\u043E\u0435\u043D\u0438\u0435"
+                    maxLength: 15
+                  apartment:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                      \u0432\u0430\u0440\u0442\u0438\u0440\u0443"
+                    maxLength: 15
+                  user: *id064
+                xml:
+                  name: root
+            application/yaml: *id065
+            application/xml: *id065
+            text/html: *id065
+          description: Error in input data
+      description: "\u041A\u043B\u0430\u0441\u0441 \u0434\u043B\u044F \u0440\u0430\
+        \u0431\u043E\u0442\u044B \u0441 \u043A\u043E\u043D\u0442\u0430\u043A\u0442\
+        \u0430\u043C\u0438 \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\
+        \u043B\u0435\u0439"
+  /api/v1/contacts/{id}/:
+    get:
+      operationId: retrieveContact
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id066
+              schema:
+                required: []
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  Status: &id067
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                  user:
+                    type: string
+                    readOnly: true
+                xml:
+                  name: root
+            application/yaml: *id066
+            application/xml: *id066
+            text/html: *id066
+          description: OK
+        '401':
+          content:
+            application/json: &id068
+              schema:
+                required: []
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id067
+                xml:
+                  name: root
+            application/yaml: *id068
+            application/xml: *id068
+            text/html: *id068
+          description: Auth required...
+      description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442 \u0442\u0435\u043A\u0443\
+        \u0449\u0435\u0433\u043E \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\
+        \u0435\u043B\u044F"
+    put:
+      operationId: updateContact
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id069
+            schema:
+              required: []
+              properties:
+                person:
+                  type: string
+                  description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u043D\u043E\
+                    \u0435 \u043B\u0438\u0446\u043E"
+                  maxLength: 50
+                phone:
+                  type: string
+                  nullable: true
+                  description: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D"
+                  maxLength: 128
+                city:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0433\u043E\
+                    \u0440\u043E\u0434"
+                  maxLength: 50
+                street:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0443\u043B\
+                    \u0438\u0446\u0443"
+                  maxLength: 100
+                house:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0434\u043E\
+                    \u043C"
+                  maxLength: 15
+                structure:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\u043E\
+                    \u0440\u043F\u0443\u0441"
+                  maxLength: 15
+                building:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\u0442\
+                    \u0440\u043E\u0435\u043D\u0438\u0435"
+                  maxLength: 15
+                apartment:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\u0432\
+                    \u0430\u0440\u0442\u0438\u0440\u0443"
+                  maxLength: 15
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id069
+          application/xml: *id069
+          application/yaml: *id069
+          multipart/form-data: *id069
+      responses:
+        '200':
+          content:
+            application/json: &id070
+              schema:
+                required: []
+                properties:
+                  url: &id073
+                    type: string
+                    readOnly: true
+                  Status: &id071
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                  user: &id075
+                    type: string
+                    readOnly: true
+                xml:
+                  name: root
+            application/yaml: *id070
+            application/xml: *id070
+            text/html: *id070
+          description: OK
+        '401':
+          content:
+            application/json: &id072
+              schema:
+                required: []
+                properties:
+                  Errors: &id074
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id071
+                xml:
+                  name: root
+            application/yaml: *id072
+            application/xml: *id072
+            text/html: *id072
+          description: Auth required...
+        '400':
+          content:
+            application/json: &id076
+              schema:
+                required: []
+                properties:
+                  url: *id073
+                  Errors: *id074
+                  Status: *id071
+                  person:
+                    type: string
+                    description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u043D\
+                      \u043E\u0435 \u043B\u0438\u0446\u043E"
+                    maxLength: 50
+                  phone:
+                    type: string
+                    nullable: true
+                    description: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D"
+                    maxLength: 128
+                  city:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0433\
+                      \u043E\u0440\u043E\u0434"
+                    maxLength: 50
+                  street:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0443\
+                      \u043B\u0438\u0446\u0443"
+                    maxLength: 100
+                  house:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0434\
+                      \u043E\u043C"
+                    maxLength: 15
+                  structure:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                      \u043E\u0440\u043F\u0443\u0441"
+                    maxLength: 15
+                  building:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\
+                      \u0442\u0440\u043E\u0435\u043D\u0438\u0435"
+                    maxLength: 15
+                  apartment:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                      \u0432\u0430\u0440\u0442\u0438\u0440\u0443"
+                    maxLength: 15
+                  user: *id075
+                xml:
+                  name: root
+            application/yaml: *id076
+            application/xml: *id076
+            text/html: *id076
+          description: Error in input data
+      description: "\u041A\u043B\u0430\u0441\u0441 \u0434\u043B\u044F \u0440\u0430\
+        \u0431\u043E\u0442\u044B \u0441 \u043A\u043E\u043D\u0442\u0430\u043A\u0442\
+        \u0430\u043C\u0438 \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\
+        \u043B\u0435\u0439"
+    patch:
+      operationId: partial_updateContact
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id077
+            schema:
+              properties:
+                person:
+                  type: string
+                  description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u043D\u043E\
+                    \u0435 \u043B\u0438\u0446\u043E"
+                  maxLength: 50
+                phone:
+                  type: string
+                  nullable: true
+                  description: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D"
+                  maxLength: 128
+                city:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0433\u043E\
+                    \u0440\u043E\u0434"
+                  maxLength: 50
+                street:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0443\u043B\
+                    \u0438\u0446\u0443"
+                  maxLength: 100
+                house:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0434\u043E\
+                    \u043C"
+                  maxLength: 15
+                structure:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\u043E\
+                    \u0440\u043F\u0443\u0441"
+                  maxLength: 15
+                building:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\u0442\
+                    \u0440\u043E\u0435\u043D\u0438\u0435"
+                  maxLength: 15
+                apartment:
+                  type: string
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\u0432\
+                    \u0430\u0440\u0442\u0438\u0440\u0443"
+                  maxLength: 15
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id077
+          application/xml: *id077
+          application/yaml: *id077
+          multipart/form-data: *id077
+      responses:
+        '200':
+          content:
+            application/json: &id078
+              schema:
+                required: []
+                properties:
+                  url: &id081
+                    type: string
+                    readOnly: true
+                  Status: &id079
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                  user: &id083
+                    type: string
+                    readOnly: true
+                xml:
+                  name: root
+            application/yaml: *id078
+            application/xml: *id078
+            text/html: *id078
+          description: OK
+        '401':
+          content:
+            application/json: &id080
+              schema:
+                required: []
+                properties:
+                  Errors: &id082
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id079
+                xml:
+                  name: root
+            application/yaml: *id080
+            application/xml: *id080
+            text/html: *id080
+          description: Auth required...
+        '400':
+          content:
+            application/json: &id084
+              schema:
+                required: []
+                properties:
+                  url: *id081
+                  Errors: *id082
+                  Status: *id079
+                  person:
+                    type: string
+                    description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u043D\
+                      \u043E\u0435 \u043B\u0438\u0446\u043E"
+                    maxLength: 50
+                  phone:
+                    type: string
+                    nullable: true
+                    description: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D"
+                    maxLength: 128
+                  city:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0433\
+                      \u043E\u0440\u043E\u0434"
+                    maxLength: 50
+                  street:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0443\
+                      \u043B\u0438\u0446\u0443"
+                    maxLength: 100
+                  house:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0434\
+                      \u043E\u043C"
+                    maxLength: 15
+                  structure:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                      \u043E\u0440\u043F\u0443\u0441"
+                    maxLength: 15
+                  building:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\
+                      \u0442\u0440\u043E\u0435\u043D\u0438\u0435"
+                    maxLength: 15
+                  apartment:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                      \u0432\u0430\u0440\u0442\u0438\u0440\u0443"
+                    maxLength: 15
+                  user: *id083
+                xml:
+                  name: root
+            application/yaml: *id084
+            application/xml: *id084
+            text/html: *id084
+          description: Error in input data
+      description: "\u041A\u043B\u0430\u0441\u0441 \u0434\u043B\u044F \u0440\u0430\
+        \u0431\u043E\u0442\u044B \u0441 \u043A\u043E\u043D\u0442\u0430\u043A\u0442\
+        \u0430\u043C\u0438 \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\
+        \u043B\u0435\u0439"
+    delete:
+      operationId: destroyContact
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id085
+              schema:
+                required: []
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  Status: &id086
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                  user:
+                    type: string
+                    readOnly: true
+                xml:
+                  name: root
+            application/yaml: *id085
+            application/xml: *id085
+            text/html: *id085
+          description: OK
+        '401':
+          content:
+            application/json: &id087
+              schema:
+                required: []
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id086
+                xml:
+                  name: root
+            application/yaml: *id087
+            application/xml: *id087
+            text/html: *id087
+          description: Auth required...
+      description: "\u041A\u043B\u0430\u0441\u0441 \u0434\u043B\u044F \u0440\u0430\
+        \u0431\u043E\u0442\u044B \u0441 \u043A\u043E\u043D\u0442\u0430\u043A\u0442\
+        \u0430\u043C\u0438 \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\
+        \u043B\u0435\u0439"
+  /api/v1/categories/:
+    get:
+      operationId: ListCategorys
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id088
+              schema:
+                required:
+                - name
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  id:
+                    type: integer
+                    readOnly: true
+                  Status:
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id088
+            application/xml: *id088
+            text/html: *id088
+          description: OK
+      description: "\u041F\u0440\u043E\u0441\u043C\u043E\u0442\u0440 \u043A\u0430\u0442\
+        \u0435\u0433\u043E\u0440\u0438\u0439"
+  /api/v1/categories/{id}/:
+    get:
+      operationId: retrieveCategory
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: "A unique integer value identifying this \u041A\u0430\u0442\u0435\
+          \u0433\u043E\u0440\u0438\u044F."
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id089
+              schema:
+                required:
+                - name
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  id:
+                    type: integer
+                    readOnly: true
+                  Status:
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id089
+            application/xml: *id089
+            text/html: *id089
+          description: OK
+      description: "\u041F\u0440\u043E\u0441\u043C\u043E\u0442\u0440 \u043A\u0430\u0442\
+        \u0435\u0433\u043E\u0440\u0438\u0439"
+  /api/v1/shops/:
+    get:
+      operationId: ListShops
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: state
+        required: false
+        in: query
+        description: state
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id090
+              schema:
+                required: []
+                properties:
+                  url:
+                    type: string
+                    format: uri
+                    readOnly: true
+                    pattern: "^(?:[a-z0-9\\.\\-\\+]*)://(?:[^\\s:@/]+(?::[^\\s:@/]*)?@)?(?:(?:25[0-5]|2[0-4]\\\
+                      d|[0-1]?\\d?\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}|\\\
+                      [[0-9a-f:\\.]+\\]|([a-z\xA1-\uFFFF0-9](?:[a-z\xA1-\uFFFF0-9-]{0,61}[a-z\xA1\
+                      -\uFFFF0-9])?(?:\\.(?!-)[a-z\xA1-\uFFFF0-9-]{1,63}(?<!-))*\\\
+                      .(?!-)(?:[a-z\xA1-\uFFFF-]{2,63}|xn--[a-z0-9]{1,59})(?<!-)\\\
+                      .?|localhost))(?::\\d{2,5})?(?:[/?#][^\\s]*)?\\Z"
+                  id:
+                    type: integer
+                    readOnly: true
+                  name:
+                    type: string
+                    readOnly: true
+                  Status:
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id090
+            application/xml: *id090
+            text/html: *id090
+          description: OK
+      description: "\u041F\u0440\u043E\u0441\u043C\u043E\u0442\u0440 \u043C\u0430\u0433\
+        \u0430\u0437\u0438\u043D\u043E\u0432"
+  /api/v1/shops/{id}/:
+    get:
+      operationId: retrieveShop
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: "A unique integer value identifying this \u041C\u0430\u0433\u0430\
+          \u0437\u0438\u043D."
+        schema:
+          type: string
+      - name: state
+        required: false
+        in: query
+        description: state
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id091
+              schema:
+                required: []
+                properties:
+                  url:
+                    type: string
+                    format: uri
+                    readOnly: true
+                    pattern: "^(?:[a-z0-9\\.\\-\\+]*)://(?:[^\\s:@/]+(?::[^\\s:@/]*)?@)?(?:(?:25[0-5]|2[0-4]\\\
+                      d|[0-1]?\\d?\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}|\\\
+                      [[0-9a-f:\\.]+\\]|([a-z\xA1-\uFFFF0-9](?:[a-z\xA1-\uFFFF0-9-]{0,61}[a-z\xA1\
+                      -\uFFFF0-9])?(?:\\.(?!-)[a-z\xA1-\uFFFF0-9-]{1,63}(?<!-))*\\\
+                      .(?!-)(?:[a-z\xA1-\uFFFF-]{2,63}|xn--[a-z0-9]{1,59})(?<!-)\\\
+                      .?|localhost))(?::\\d{2,5})?(?:[/?#][^\\s]*)?\\Z"
+                  id:
+                    type: integer
+                    readOnly: true
+                  name:
+                    type: string
+                    readOnly: true
+                  Status:
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id091
+            application/xml: *id091
+            text/html: *id091
+          description: OK
+      description: "\u041F\u0440\u043E\u0441\u043C\u043E\u0442\u0440 \u043C\u0430\u0433\
+        \u0430\u0437\u0438\u043D\u043E\u0432"
+  /api/v1/products/:
+    get:
+      operationId: ListProductInfos
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id092
+              schema:
+                required:
+                - quantity
+                - price
+                - price_rrc
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  id:
+                    type: integer
+                    readOnly: true
+                  product:
+                    required:
+                    - name
+                    - category
+                    properties:
+                      name:
+                        type: string
+                        maxLength: 80
+                      category:
+                        required:
+                        - name
+                        properties:
+                          url:
+                            type: string
+                            readOnly: true
+                          id:
+                            type: integer
+                            readOnly: true
+                          name:
+                            type: string
+                            maxLength: 40
+                        type: object
+                    type: object
+                    readOnly: true
+                    description: "\u0414\u0410\u043D\u043D\u044B\u0435 \u043F\u043E\
+                      \ \u0442\u043E\u0432\u0430\u0440\u0443"
+                  shop:
+                    required:
+                    - name
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+                        nullable: true
+                        maxLength: 200
+                        pattern: "^(?:[a-z0-9\\.\\-\\+]*)://(?:[^\\s:@/]+(?::[^\\\
+                          s:@/]*)?@)?(?:(?:25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(?:\\.(?:25[0-5]|2[0-4]\\\
+                          d|[0-1]?\\d?\\d)){3}|\\[[0-9a-f:\\.]+\\]|([a-z\xA1-\uFFFF\
+                          0-9](?:[a-z\xA1-\uFFFF0-9-]{0,61}[a-z\xA1-\uFFFF0-9])?(?:\\\
+                          .(?!-)[a-z\xA1-\uFFFF0-9-]{1,63}(?<!-))*\\.(?!-)(?:[a-z\xA1\
+                          -\uFFFF-]{2,63}|xn--[a-z0-9]{1,59})(?<!-)\\.?|localhost))(?::\\\
+                          d{2,5})?(?:[/?#][^\\s]*)?\\Z"
+                      name:
+                        type: string
+                        maxLength: 50
+                    type: object
+                    readOnly: true
+                    description: "\u0414\u0430\u043D\u043D\u044B\u0435 \u043F\u043E\
+                      \ \u043C\u0430\u0433\u0430\u0437\u0438\u043D\u0443"
+                  product_parameters:
+                    type: array
+                    items:
+                      required:
+                      - value
+                      properties:
+                        parameter:
+                          type: string
+                          readOnly: true
+                        value:
+                          type: string
+                          maxLength: 100
+                    readOnly: true
+                    description: "\u041F\u0430\u0440\u0430\u043C\u0435\u0442\u0440\
+                      \u044B \u0442\u043E\u0432\u0430\u0440\u0430"
+                  Status:
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id092
+            application/xml: *id092
+            text/html: *id092
+          description: OK
+      description: "\u041F\u043E\u0438\u0441\u043A \u0442\u043E\u0432\u0430\u0440\u043E\
+        \u0432"
+  /api/v1/products/{id}/:
+    get:
+      operationId: retrieveProductInfo
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id093
+              schema:
+                required:
+                - quantity
+                - price
+                - price_rrc
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  id:
+                    type: integer
+                    readOnly: true
+                  product:
+                    required:
+                    - name
+                    - category
+                    properties:
+                      name:
+                        type: string
+                        maxLength: 80
+                      category:
+                        required:
+                        - name
+                        properties:
+                          url:
+                            type: string
+                            readOnly: true
+                          id:
+                            type: integer
+                            readOnly: true
+                          name:
+                            type: string
+                            maxLength: 40
+                        type: object
+                    type: object
+                    readOnly: true
+                    description: "\u0414\u0410\u043D\u043D\u044B\u0435 \u043F\u043E\
+                      \ \u0442\u043E\u0432\u0430\u0440\u0443"
+                  shop:
+                    required:
+                    - name
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+                        nullable: true
+                        maxLength: 200
+                        pattern: "^(?:[a-z0-9\\.\\-\\+]*)://(?:[^\\s:@/]+(?::[^\\\
+                          s:@/]*)?@)?(?:(?:25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(?:\\.(?:25[0-5]|2[0-4]\\\
+                          d|[0-1]?\\d?\\d)){3}|\\[[0-9a-f:\\.]+\\]|([a-z\xA1-\uFFFF\
+                          0-9](?:[a-z\xA1-\uFFFF0-9-]{0,61}[a-z\xA1-\uFFFF0-9])?(?:\\\
+                          .(?!-)[a-z\xA1-\uFFFF0-9-]{1,63}(?<!-))*\\.(?!-)(?:[a-z\xA1\
+                          -\uFFFF-]{2,63}|xn--[a-z0-9]{1,59})(?<!-)\\.?|localhost))(?::\\\
+                          d{2,5})?(?:[/?#][^\\s]*)?\\Z"
+                      name:
+                        type: string
+                        maxLength: 50
+                    type: object
+                    readOnly: true
+                    description: "\u0414\u0430\u043D\u043D\u044B\u0435 \u043F\u043E\
+                      \ \u043C\u0430\u0433\u0430\u0437\u0438\u043D\u0443"
+                  product_parameters:
+                    type: array
+                    items:
+                      required:
+                      - value
+                      properties:
+                        parameter:
+                          type: string
+                          readOnly: true
+                        value:
+                          type: string
+                          maxLength: 100
+                    readOnly: true
+                    description: "\u041F\u0430\u0440\u0430\u043C\u0435\u0442\u0440\
+                      \u044B \u0442\u043E\u0432\u0430\u0440\u0430"
+                  Status:
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id093
+            application/xml: *id093
+            text/html: *id093
+          description: OK
+      description: "\u041F\u043E\u0438\u0441\u043A \u0442\u043E\u0432\u0430\u0440\u043E\
+        \u0432"
+  /api/v1/productparameters/:
+    get:
+      operationId: ListProductParameters
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: parameter__name
+        required: false
+        in: query
+        description: parameter__name
+        schema:
+          type: string
+      - name: value
+        required: false
+        in: query
+        description: value
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id094
+              schema:
+                required:
+                - value
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  id:
+                    type: integer
+                    readOnly: true
+                  parameter:
+                    type: string
+                    readOnly: true
+                    description: "\u041F\u0430\u0440\u0430\u043C\u0435\u0442\u0440\
+                      \ \u0442\u043E\u0432\u0430\u0440\u0430"
+                  Status:
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id094
+            application/xml: *id094
+            text/html: *id094
+          description: OK
+      description: "\u041F\u0430\u0440\u0430\u043C\u0435\u0442\u0440\u044B \u0442\u043E\
+        \u0432\u0430\u0440\u043E\u0432"
+  /api/v1/productparameters/{id}/:
+    get:
+      operationId: retrieveProductParameter
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: "A unique integer value identifying this \u041F\u0430\u0440\u0430\
+          \u043C\u0435\u0442\u0440."
+        schema:
+          type: string
+      - name: parameter__name
+        required: false
+        in: query
+        description: parameter__name
+        schema:
+          type: string
+      - name: value
+        required: false
+        in: query
+        description: value
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id095
+              schema:
+                required:
+                - value
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  id:
+                    type: integer
+                    readOnly: true
+                  parameter:
+                    type: string
+                    readOnly: true
+                    description: "\u041F\u0430\u0440\u0430\u043C\u0435\u0442\u0440\
+                      \ \u0442\u043E\u0432\u0430\u0440\u0430"
+                  Status:
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id095
+            application/xml: *id095
+            text/html: *id095
+          description: OK
+      description: "\u041F\u0430\u0440\u0430\u043C\u0435\u0442\u0440\u044B \u0442\u043E\
+        \u0432\u0430\u0440\u043E\u0432"
+  /api/v1/orders/:
+    get:
+      operationId: ListOrders
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id096
+              schema:
+                required: []
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  id:
+                    type: integer
+                    readOnly: true
+                  ordered_items:
+                    type: array
+                    items:
+                      required:
+                      - product_info
+                      properties:
+                        product_info:
+                          required:
+                          - quantity
+                          - price
+                          - price_rrc
+                          properties:
+                            url:
+                              type: string
+                              readOnly: true
+                            id:
+                              type: integer
+                              readOnly: true
+                            product:
+                              required:
+                              - name
+                              - category
+                              properties:
+                                name:
+                                  type: string
+                                  maxLength: 80
+                                category:
+                                  required:
+                                  - name
+                                  properties:
+                                    url:
+                                      type: string
+                                      readOnly: true
+                                    id:
+                                      type: integer
+                                      readOnly: true
+                                    name:
+                                      type: string
+                                      maxLength: 40
+                                  type: object
+                              type: object
+                              readOnly: true
+                              description: "\u0414\u0410\u043D\u043D\u044B\u0435 \u043F\
+                                \u043E \u0442\u043E\u0432\u0430\u0440\u0443"
+                            shop:
+                              required:
+                              - name
+                              properties:
+                                url:
+                                  type: string
+                                  format: uri
+                                  nullable: true
+                                  maxLength: 200
+                                  pattern: "^(?:[a-z0-9\\.\\-\\+]*)://(?:[^\\s:@/]+(?::[^\\\
+                                    s:@/]*)?@)?(?:(?:25[0-5]|2[0-4]\\d|[0-1]?\\d?\\\
+                                    d)(?:\\.(?:25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}|\\\
+                                    [[0-9a-f:\\.]+\\]|([a-z\xA1-\uFFFF0-9](?:[a-z\xA1\
+                                    -\uFFFF0-9-]{0,61}[a-z\xA1-\uFFFF0-9])?(?:\\.(?!-)[a-z\xA1\
+                                    -\uFFFF0-9-]{1,63}(?<!-))*\\.(?!-)(?:[a-z\xA1\
+                                    -\uFFFF-]{2,63}|xn--[a-z0-9]{1,59})(?<!-)\\.?|localhost))(?::\\\
+                                    d{2,5})?(?:[/?#][^\\s]*)?\\Z"
+                                name:
+                                  type: string
+                                  maxLength: 50
+                              type: object
+                              readOnly: true
+                              description: "\u0414\u0430\u043D\u043D\u044B\u0435 \u043F\
+                                \u043E \u043C\u0430\u0433\u0430\u0437\u0438\u043D\u0443"
+                            quantity:
+                              type: integer
+                            price:
+                              type: number
+                              multipleOf: 0.01
+                              maximum: 1000000000000000000
+                              minimum: 0
+                            price_rrc:
+                              type: number
+                              multipleOf: 0.01
+                              maximum: 1000000000000000000
+                              minimum: 0
+                            product_parameters:
+                              type: array
+                              items:
+                                required:
+                                - value
+                                properties:
+                                  parameter:
+                                    type: string
+                                    readOnly: true
+                                  value:
+                                    type: string
+                                    maxLength: 100
+                              readOnly: true
+                              description: "\u041F\u0430\u0440\u0430\u043C\u0435\u0442\
+                                \u0440\u044B \u0442\u043E\u0432\u0430\u0440\u0430"
+                            Errors:
+                              type: string
+                              readOnly: true
+                              description: Error message(s)
+                            Status:
+                              type: boolean
+                              readOnly: true
+                              description: Http Status code
+                          type: object
+                    readOnly: true
+                    description: "\u0417\u0430\u043A\u0430\u0437\u0430\u043D\u043D\
+                      \u044B\u0435 \u0442\u043E\u0432\u0430\u0440\u044B"
+                  state:
+                    enum:
+                    - basket
+                    - new
+                    - confirmed
+                    - assembled
+                    - sent
+                    - delivered
+                    - canceled
+                    readOnly: true
+                  dt:
+                    type: string
+                    format: date-time
+                    readOnly: true
+                  total_sum:
+                    type: number
+                    multipleOf: 0.01
+                    maximum: 1000000000000000000
+                    minimum: 0
+                    readOnly: true
+                    description: "\u041E\u0431\u0449\u0430\u044F \u0441\u0443\u043C\
+                      \u043C\u0430"
+                  contact:
+                    required: []
+                    properties:
+                      url:
+                        type: string
+                        readOnly: true
+                      Errors:
+                        type: string
+                        readOnly: true
+                        description: Error message(s)
+                      Status:
+                        type: boolean
+                        readOnly: true
+                        description: Http Status code
+                      person:
+                        type: string
+                        description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u043D\
+                          \u043E\u0435 \u043B\u0438\u0446\u043E"
+                        maxLength: 50
+                      phone:
+                        type: string
+                        nullable: true
+                        description: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D"
+                        maxLength: 128
+                      city:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0433\
+                          \u043E\u0440\u043E\u0434"
+                        maxLength: 50
+                      street:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0443\
+                          \u043B\u0438\u0446\u0443"
+                        maxLength: 100
+                      house:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0434\
+                          \u043E\u043C"
+                        maxLength: 15
+                      structure:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                          \u043E\u0440\u043F\u0443\u0441"
+                        maxLength: 15
+                      building:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\
+                          \u0442\u0440\u043E\u0435\u043D\u0438\u0435"
+                        maxLength: 15
+                      apartment:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                          \u0432\u0430\u0440\u0442\u0438\u0440\u0443"
+                        maxLength: 15
+                      user:
+                        type: string
+                        readOnly: true
+                    type: object
+                    readOnly: true
+                    description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u043D\
+                      \u044B\u0435 \u0434\u0430\u043D\u043D\u044B\u0435, \u0443\u043A\
+                      \u0430\u0437\u0430\u043D\u043D\u044B\u0435 \u0437\u0430\u043A\
+                      \u0430\u0437\u0447\u0438\u043A\u043E\u043C"
+                  Status: &id097
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id096
+            application/xml: *id096
+            text/html: *id096
+          description: OK
+        '401':
+          content:
+            application/json: &id098
+              schema:
+                required: []
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id097
+                xml:
+                  name: root
+            application/yaml: *id098
+            application/xml: *id098
+            text/html: *id098
+          description: Auth required...
+      description: "\u0421\u043F\u0438\u0441\u043E\u043A \u0437\u0430\u043A\u0430\u0437\
+        \u043E\u0432 \u0442\u0435\u043A\u0443\u0449\u0435\u0433\u043E \u043F\u043E\
+        \u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F"
+    post:
+      operationId: createCreateOrder
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id099
+            schema:
+              required:
+              - contact
+              properties:
+                contact:
+                  type: string
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id099
+          application/xml: *id099
+          application/yaml: *id099
+          multipart/form-data: *id099
+      responses:
+        '201':
+          content:
+            application/json: &id100
+              schema:
+                required:
+                - contact
+                properties:
+                  Status: &id101
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id100
+            application/xml: *id100
+            text/html: *id100
+          description: Created
+        '401':
+          content:
+            application/json: &id102
+              schema:
+                required:
+                - contact
+                properties:
+                  Errors: &id103
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id101
+                xml:
+                  name: root
+            application/yaml: *id102
+            application/xml: *id102
+            text/html: *id102
+          description: Auth required...
+        '400':
+          content:
+            application/json: &id104
+              schema:
+                required:
+                - contact
+                properties:
+                  contact:
+                    type: string
+                  Errors: *id103
+                  Status: *id101
+                xml:
+                  name: root
+            application/yaml: *id104
+            application/xml: *id104
+            text/html: *id104
+          description: Error in input data
+      description: "\u041E\u0444\u043E\u0440\u043C\u0438\u0442\u044C \u0437\u0430\u043A\
+        \u0430\u0437"
+  /api/v1/orders/{id}/:
+    get:
+      operationId: retrieveOrder
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id105
+              schema:
+                required: []
+                properties:
+                  url:
+                    type: string
+                    readOnly: true
+                  id:
+                    type: integer
+                    readOnly: true
+                  ordered_items:
+                    type: array
+                    items:
+                      required:
+                      - product_info
+                      properties:
+                        product_info:
+                          required:
+                          - quantity
+                          - price
+                          - price_rrc
+                          properties:
+                            url:
+                              type: string
+                              readOnly: true
+                            id:
+                              type: integer
+                              readOnly: true
+                            product:
+                              required:
+                              - name
+                              - category
+                              properties:
+                                name:
+                                  type: string
+                                  maxLength: 80
+                                category:
+                                  required:
+                                  - name
+                                  properties:
+                                    url:
+                                      type: string
+                                      readOnly: true
+                                    id:
+                                      type: integer
+                                      readOnly: true
+                                    name:
+                                      type: string
+                                      maxLength: 40
+                                  type: object
+                              type: object
+                              readOnly: true
+                              description: "\u0414\u0410\u043D\u043D\u044B\u0435 \u043F\
+                                \u043E \u0442\u043E\u0432\u0430\u0440\u0443"
+                            shop:
+                              required:
+                              - name
+                              properties:
+                                url:
+                                  type: string
+                                  format: uri
+                                  nullable: true
+                                  maxLength: 200
+                                  pattern: "^(?:[a-z0-9\\.\\-\\+]*)://(?:[^\\s:@/]+(?::[^\\\
+                                    s:@/]*)?@)?(?:(?:25[0-5]|2[0-4]\\d|[0-1]?\\d?\\\
+                                    d)(?:\\.(?:25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}|\\\
+                                    [[0-9a-f:\\.]+\\]|([a-z\xA1-\uFFFF0-9](?:[a-z\xA1\
+                                    -\uFFFF0-9-]{0,61}[a-z\xA1-\uFFFF0-9])?(?:\\.(?!-)[a-z\xA1\
+                                    -\uFFFF0-9-]{1,63}(?<!-))*\\.(?!-)(?:[a-z\xA1\
+                                    -\uFFFF-]{2,63}|xn--[a-z0-9]{1,59})(?<!-)\\.?|localhost))(?::\\\
+                                    d{2,5})?(?:[/?#][^\\s]*)?\\Z"
+                                name:
+                                  type: string
+                                  maxLength: 50
+                              type: object
+                              readOnly: true
+                              description: "\u0414\u0430\u043D\u043D\u044B\u0435 \u043F\
+                                \u043E \u043C\u0430\u0433\u0430\u0437\u0438\u043D\u0443"
+                            quantity:
+                              type: integer
+                            price:
+                              type: number
+                              multipleOf: 0.01
+                              maximum: 1000000000000000000
+                              minimum: 0
+                            price_rrc:
+                              type: number
+                              multipleOf: 0.01
+                              maximum: 1000000000000000000
+                              minimum: 0
+                            product_parameters:
+                              type: array
+                              items:
+                                required:
+                                - value
+                                properties:
+                                  parameter:
+                                    type: string
+                                    readOnly: true
+                                  value:
+                                    type: string
+                                    maxLength: 100
+                              readOnly: true
+                              description: "\u041F\u0430\u0440\u0430\u043C\u0435\u0442\
+                                \u0440\u044B \u0442\u043E\u0432\u0430\u0440\u0430"
+                            Errors:
+                              type: string
+                              readOnly: true
+                              description: Error message(s)
+                            Status:
+                              type: boolean
+                              readOnly: true
+                              description: Http Status code
+                          type: object
+                    readOnly: true
+                    description: "\u0417\u0430\u043A\u0430\u0437\u0430\u043D\u043D\
+                      \u044B\u0435 \u0442\u043E\u0432\u0430\u0440\u044B"
+                  state:
+                    enum:
+                    - basket
+                    - new
+                    - confirmed
+                    - assembled
+                    - sent
+                    - delivered
+                    - canceled
+                    readOnly: true
+                  dt:
+                    type: string
+                    format: date-time
+                    readOnly: true
+                  total_sum:
+                    type: number
+                    multipleOf: 0.01
+                    maximum: 1000000000000000000
+                    minimum: 0
+                    readOnly: true
+                    description: "\u041E\u0431\u0449\u0430\u044F \u0441\u0443\u043C\
+                      \u043C\u0430"
+                  contact:
+                    required: []
+                    properties:
+                      url:
+                        type: string
+                        readOnly: true
+                      Errors:
+                        type: string
+                        readOnly: true
+                        description: Error message(s)
+                      Status:
+                        type: boolean
+                        readOnly: true
+                        description: Http Status code
+                      person:
+                        type: string
+                        description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u043D\
+                          \u043E\u0435 \u043B\u0438\u0446\u043E"
+                        maxLength: 50
+                      phone:
+                        type: string
+                        nullable: true
+                        description: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D"
+                        maxLength: 128
+                      city:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0433\
+                          \u043E\u0440\u043E\u0434"
+                        maxLength: 50
+                      street:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0443\
+                          \u043B\u0438\u0446\u0443"
+                        maxLength: 100
+                      house:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0434\
+                          \u043E\u043C"
+                        maxLength: 15
+                      structure:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                          \u043E\u0440\u043F\u0443\u0441"
+                        maxLength: 15
+                      building:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\
+                          \u0442\u0440\u043E\u0435\u043D\u0438\u0435"
+                        maxLength: 15
+                      apartment:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                          \u0432\u0430\u0440\u0442\u0438\u0440\u0443"
+                        maxLength: 15
+                      user:
+                        type: string
+                        readOnly: true
+                    type: object
+                    readOnly: true
+                    description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u043D\
+                      \u044B\u0435 \u0434\u0430\u043D\u043D\u044B\u0435, \u0443\u043A\
+                      \u0430\u0437\u0430\u043D\u043D\u044B\u0435 \u0437\u0430\u043A\
+                      \u0430\u0437\u0447\u0438\u043A\u043E\u043C"
+                  Status: &id106
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id105
+            application/xml: *id105
+            text/html: *id105
+          description: OK
+        '401':
+          content:
+            application/json: &id107
+              schema:
+                required: []
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id106
+                xml:
+                  name: root
+            application/yaml: *id107
+            application/xml: *id107
+            text/html: *id107
+          description: Auth required...
+      description: "\u0417\u0430\u043A\u0430\u0437 \u0442\u0435\u043A\u0443\u0449\u0435\
+        \u0433\u043E \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\
+        \u044F"
+  /api/v1/basket/:
+    get:
+      operationId: ListShowBaskets
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id108
+              schema:
+                required: []
+                properties:
+                  ordered_items:
+                    type: array
+                    items:
+                      required:
+                      - product_info
+                      - quantity
+                      properties:
+                        id:
+                          type: integer
+                          readOnly: true
+                        product_info:
+                          required:
+                          - shop
+                          - price
+                          - price_rrc
+                          properties:
+                            id:
+                              type: integer
+                              readOnly: true
+                            url:
+                              type: string
+                              readOnly: true
+                            product:
+                              type: string
+                              readOnly: true
+                            shop:
+                              required:
+                              - name
+                              properties:
+                                id:
+                                  type: integer
+                                  readOnly: true
+                                url:
+                                  type: string
+                                  format: uri
+                                  nullable: true
+                                  maxLength: 200
+                                  pattern: "^(?:[a-z0-9\\.\\-\\+]*)://(?:[^\\s:@/]+(?::[^\\\
+                                    s:@/]*)?@)?(?:(?:25[0-5]|2[0-4]\\d|[0-1]?\\d?\\\
+                                    d)(?:\\.(?:25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}|\\\
+                                    [[0-9a-f:\\.]+\\]|([a-z\xA1-\uFFFF0-9](?:[a-z\xA1\
+                                    -\uFFFF0-9-]{0,61}[a-z\xA1-\uFFFF0-9])?(?:\\.(?!-)[a-z\xA1\
+                                    -\uFFFF0-9-]{1,63}(?<!-))*\\.(?!-)(?:[a-z\xA1\
+                                    -\uFFFF-]{2,63}|xn--[a-z0-9]{1,59})(?<!-)\\.?|localhost))(?::\\\
+                                    d{2,5})?(?:[/?#][^\\s]*)?\\Z"
+                                name:
+                                  type: string
+                                  maxLength: 50
+                              type: object
+                            price:
+                              type: number
+                              multipleOf: 0.01
+                              maximum: 1000000000000000000
+                              minimum: 0
+                            price_rrc:
+                              type: number
+                              multipleOf: 0.01
+                              maximum: 1000000000000000000
+                              minimum: 0
+                          type: object
+                        quantity:
+                          type: integer
+                    readOnly: true
+                    description: "\u0417\u0430\u043A\u0430\u0437\u0430\u043D\u043D\
+                      \u044B\u0435 \u0442\u043E\u0432\u0430\u0440\u044B"
+                  total_sum:
+                    type: number
+                    multipleOf: 0.01
+                    maximum: 1000000000000000000
+                    minimum: 0
+                    readOnly: true
+                    description: "\u041E\u0431\u0449\u0430\u044F \u0441\u0443\u043C\
+                      \u043C\u0430"
+                  Status: &id109
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id108
+            application/xml: *id108
+            text/html: *id108
+          description: OK
+        '401':
+          content:
+            application/json: &id110
+              schema:
+                required: []
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id109
+                xml:
+                  name: root
+            application/yaml: *id110
+            application/xml: *id110
+            text/html: *id110
+          description: Auth required...
+      description: "\u0421\u043F\u0438\u0441\u043E\u043A \u0437\u0430\u043A\u0430\u0437\
+        \u043E\u0432 \u0432 \u043A\u043E\u0440\u0437\u0438\u043D\u0435 \u0442\u0435\
+        \u043A\u0443\u0449\u0435\u0433\u043E \u043F\u043E\u043B\u044C\u0437\u043E\u0432\
+        \u0430\u0442\u0435\u043B\u044F"
+  /api/v1/users/password_reset/:
+    post:
+      operationId: CreateEmail
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id111
+            schema:
+              required:
+              - email
+              properties:
+                email:
+                  type: string
+                  format: email
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id111
+          application/xml: *id111
+          application/yaml: *id111
+          multipart/form-data: *id111
+      responses:
+        '200':
+          content:
+            application/json: &id112
+              schema:
+                required:
+                - email
+                properties: {}
+                xml:
+                  name: root
+            application/yaml: *id112
+            application/xml: *id112
+            text/html: *id112
+          description: OK
+        '400':
+          content:
+            application/json: &id113
+              schema:
+                required:
+                - email
+                properties:
+                  email:
+                    type: string
+                xml:
+                  name: root
+            application/yaml: *id113
+            application/xml: *id113
+            text/html: *id113
+          description: Error in input data
+      description: "An Api View which provides a method to request a password reset\
+        \ token based on an e-mail address\n\nSends a signal reset_password_token_created\
+        \ when a reset token was created (\u043F\u043E\u043A\u0443\u043F\u0430\u0442\
+        \u0435\u043B\u044C)"
+  /api/v1/users/password_reset/confirm/:
+    post:
+      operationId: CreatePasswordToken
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id114
+            schema:
+              required:
+              - password
+              - token
+              properties:
+                password:
+                  type: string
+                token:
+                  type: string
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id114
+          application/xml: *id114
+          application/yaml: *id114
+          multipart/form-data: *id114
+      responses:
+        '200':
+          content:
+            application/json: &id115
+              schema:
+                required:
+                - password
+                - token
+                properties: {}
+                xml:
+                  name: root
+            application/yaml: *id115
+            application/xml: *id115
+            text/html: *id115
+          description: OK
+        '400':
+          content:
+            application/json: &id116
+              schema:
+                required:
+                - password
+                - token
+                properties:
+                  password:
+                    type: string
+                  token:
+                    type: string
+                xml:
+                  name: root
+            application/yaml: *id116
+            application/xml: *id116
+            text/html: *id116
+          description: Error in input data
+      description: "An Api View which provides a method to reset a password based\
+        \ on a unique token (\u043F\u043E\u043A\u0443\u043F\u0430\u0442\u0435\u043B\
+        \u044C)"
+  /api/v1/users/confirm/:
+    post:
+      operationId: confirmUser
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id117
+            schema:
+              required:
+              - email
+              - token
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Iput email
+                token:
+                  type: string
+                  description: Auth token
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id117
+          application/xml: *id117
+          application/yaml: *id117
+          multipart/form-data: *id117
+      responses:
+        '200':
+          content:
+            application/json: &id118
+              schema:
+                required:
+                - email
+                - token
+                properties:
+                  Status: &id119
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id118
+            application/xml: *id118
+            text/html: *id118
+          description: OK
+        '400':
+          content:
+            application/json: &id120
+              schema:
+                required:
+                - email
+                - token
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id119
+                  email:
+                    type: string
+                    description: Iput email
+                  token:
+                    type: string
+                    description: Auth token
+                xml:
+                  name: root
+            application/yaml: *id120
+            application/xml: *id120
+            text/html: *id120
+          description: Error in input data
+      description: "\u041F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\
+        \u0438\u0435 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438\
+        \ (\u043F\u043E\u043A\u0443\u043F\u0430\u0442\u0435\u043B\u044C)"
+  /api/v1/users/login/:
+    post:
+      operationId: loginUser
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id121
+            schema:
+              required:
+              - email
+              - password
+              - recaptcha
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Iput email
+                password:
+                  type: string
+                  description: Iput password
+                recaptcha:
+                  type: string
+                  writeOnly: true
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id121
+          application/xml: *id121
+          application/yaml: *id121
+          multipart/form-data: *id121
+      responses:
+        '200':
+          content:
+            application/json: &id122
+              schema:
+                required:
+                - email
+                - password
+                properties:
+                  Status: &id123
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                  token: &id124
+                    type: string
+                    readOnly: true
+                    description: Auth token
+                xml:
+                  name: root
+            application/yaml: *id122
+            application/xml: *id122
+            text/html: *id122
+          description: OK
+        '400':
+          content:
+            application/json: &id125
+              schema:
+                required:
+                - email
+                - password
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id123
+                  email:
+                    type: string
+                    description: Iput email
+                  password:
+                    type: string
+                    description: Iput password
+                  token: *id124
+                xml:
+                  name: root
+            application/yaml: *id125
+            application/xml: *id125
+            text/html: *id125
+          description: Error in input data
+      description: "\u0417\u0430\u043F\u0440\u043E\u0441 \u0442\u043E\u043A\u0435\u043D\
+        \u0430 \u0434\u043B\u044F \u0430\u0432\u0442\u043E\u0440\u0438\u0437\u0430\
+        \u0446\u0438\u0438 (\u043F\u043E\u043A\u0443\u043F\u0430\u0442\u0435\u043B\
+        \u044C)"
+  /api/v1/users/register/:
+    post:
+      operationId: registerUser
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id126
+            schema:
+              required:
+              - first_name
+              - last_name
+              - email
+              - company
+              - position
+              - password
+              - password2
+              - recaptcha
+              properties:
+                first_name:
+                  type: string
+                  maxLength: 30
+                last_name:
+                  type: string
+                  maxLength: 150
+                email:
+                  type: string
+                  format: email
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 email \u0430\
+                    \u0434\u0440\u0435\u0441"
+                  maxLength: 254
+                company:
+                  type: string
+                  description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043A\u043E\
+                    \u043C\u043F\u0430\u043D\u0438\u044E"
+                  maxLength: 40
+                position:
+                  type: string
+                  description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0434\u043E\
+                    \u043B\u0436\u043D\u043E\u0441\u0442\u044C"
+                  maxLength: 40
+                password:
+                  type: string
+                  writeOnly: true
+                  description: Iput password
+                password2:
+                  type: string
+                  writeOnly: true
+                  description: Iput password again
+                recaptcha:
+                  type: string
+                  writeOnly: true
+                contacts:
+                  type: array
+                  items:
+                    required: []
+                    properties:
+                      url:
+                        type: string
+                        readOnly: true
+                      Errors:
+                        type: string
+                        readOnly: true
+                        description: Error message(s)
+                      Status:
+                        type: boolean
+                        readOnly: true
+                        description: Http Status code
+                      person:
+                        type: string
+                        description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u043D\
+                          \u043E\u0435 \u043B\u0438\u0446\u043E"
+                        maxLength: 50
+                      phone:
+                        type: string
+                        nullable: true
+                        description: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D"
+                        maxLength: 128
+                      city:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0433\
+                          \u043E\u0440\u043E\u0434"
+                        maxLength: 50
+                      street:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0443\
+                          \u043B\u0438\u0446\u0443"
+                        maxLength: 100
+                      house:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0434\
+                          \u043E\u043C"
+                        maxLength: 15
+                      structure:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                          \u043E\u0440\u043F\u0443\u0441"
+                        maxLength: 15
+                      building:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\
+                          \u0442\u0440\u043E\u0435\u043D\u0438\u0435"
+                        maxLength: 15
+                      apartment:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                          \u0432\u0430\u0440\u0442\u0438\u0440\u0443"
+                        maxLength: 15
+                      user:
+                        type: string
+                        readOnly: true
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id126
+          application/xml: *id126
+          application/yaml: *id126
+          multipart/form-data: *id126
+      responses:
+        '200':
+          content:
+            application/json: &id127
+              schema:
+                required:
+                - first_name
+                - last_name
+                - email
+                - company
+                - position
+                properties:
+                  url: &id128
+                    type: string
+                    readOnly: true
+                  id: &id129
+                    type: integer
+                    readOnly: true
+                  Status: &id130
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id127
+            application/xml: *id127
+            text/html: *id127
+          description: OK
+        '400':
+          content:
+            application/json: &id131
+              schema:
+                required:
+                - first_name
+                - last_name
+                - email
+                - company
+                - position
+                properties:
+                  url: *id128
+                  id: *id129
+                  first_name:
+                    type: string
+                    maxLength: 30
+                  last_name:
+                    type: string
+                    maxLength: 150
+                  email:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 email\
+                      \ \u0430\u0434\u0440\u0435\u0441"
+                    maxLength: 254
+                  company:
+                    type: string
+                    description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043A\
+                      \u043E\u043C\u043F\u0430\u043D\u0438\u044E"
+                    maxLength: 40
+                  position:
+                    type: string
+                    description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0434\
+                      \u043E\u043B\u0436\u043D\u043E\u0441\u0442\u044C"
+                    maxLength: 40
+                  contacts:
+                    type: string
+                    items:
+                      required: []
+                      properties:
+                        url:
+                          type: string
+                          readOnly: true
+                        Errors:
+                          type: string
+                          readOnly: true
+                          description: Error message(s)
+                        Status:
+                          type: boolean
+                          readOnly: true
+                          description: Http Status code
+                        person:
+                          type: string
+                          description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\
+                            \u043D\u043E\u0435 \u043B\u0438\u0446\u043E"
+                          maxLength: 50
+                        phone:
+                          type: string
+                          nullable: true
+                          description: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D"
+                          maxLength: 128
+                        city:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u0433\u043E\u0440\u043E\u0434"
+                          maxLength: 50
+                        street:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u0443\u043B\u0438\u0446\u0443"
+                          maxLength: 100
+                        house:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u0434\u043E\u043C"
+                          maxLength: 15
+                        structure:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u043A\u043E\u0440\u043F\u0443\u0441"
+                          maxLength: 15
+                        building:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u0441\u0442\u0440\u043E\u0435\u043D\u0438\u0435"
+                          maxLength: 15
+                        apartment:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u043A\u0432\u0430\u0440\u0442\u0438\u0440\u0443"
+                          maxLength: 15
+                        user:
+                          type: string
+                          readOnly: true
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id130
+                xml:
+                  name: root
+            application/yaml: *id131
+            application/xml: *id131
+            text/html: *id131
+          description: Error in input data
+      description: "\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F\
+        \ (\u043F\u043E\u043A\u0443\u043F\u0430\u0442\u0435\u043B\u044C)"
+  /api/v1/partners/confirm/:
+    post:
+      operationId: confirmUser
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id132
+            schema:
+              required:
+              - email
+              - token
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Iput email
+                token:
+                  type: string
+                  description: Auth token
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id132
+          application/xml: *id132
+          application/yaml: *id132
+          multipart/form-data: *id132
+      responses:
+        '200':
+          content:
+            application/json: &id133
+              schema:
+                required:
+                - email
+                - token
+                properties:
+                  Status: &id134
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id133
+            application/xml: *id133
+            text/html: *id133
+          description: OK
+        '400':
+          content:
+            application/json: &id135
+              schema:
+                required:
+                - email
+                - token
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id134
+                  email:
+                    type: string
+                    description: Iput email
+                  token:
+                    type: string
+                    description: Auth token
+                xml:
+                  name: root
+            application/yaml: *id135
+            application/xml: *id135
+            text/html: *id135
+          description: Error in input data
+      description: "\u041F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\
+        \u0438\u0435 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438\
+        \ (\u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A)"
+  /api/v1/partners/login/:
+    post:
+      operationId: loginUser
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id136
+            schema:
+              required:
+              - email
+              - password
+              - recaptcha
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Iput email
+                password:
+                  type: string
+                  description: Iput password
+                recaptcha:
+                  type: string
+                  writeOnly: true
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id136
+          application/xml: *id136
+          application/yaml: *id136
+          multipart/form-data: *id136
+      responses:
+        '200':
+          content:
+            application/json: &id137
+              schema:
+                required:
+                - email
+                - password
+                properties:
+                  Status: &id138
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                  token: &id139
+                    type: string
+                    readOnly: true
+                    description: Auth token
+                xml:
+                  name: root
+            application/yaml: *id137
+            application/xml: *id137
+            text/html: *id137
+          description: OK
+        '400':
+          content:
+            application/json: &id140
+              schema:
+                required:
+                - email
+                - password
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id138
+                  email:
+                    type: string
+                    description: Iput email
+                  password:
+                    type: string
+                    description: Iput password
+                  token: *id139
+                xml:
+                  name: root
+            application/yaml: *id140
+            application/xml: *id140
+            text/html: *id140
+          description: Error in input data
+      description: "\u0417\u0430\u043F\u0440\u043E\u0441 \u0442\u043E\u043A\u0435\u043D\
+        \u0430 \u0434\u043B\u044F \u0430\u0432\u0442\u043E\u0440\u0438\u0437\u0430\
+        \u0446\u0438\u0438 (\u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A\
+        )"
+  /api/v1/partners/register/:
+    post:
+      operationId: registerUser
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id141
+            schema:
+              required:
+              - first_name
+              - last_name
+              - email
+              - company
+              - position
+              - password
+              - password2
+              - recaptcha
+              properties:
+                first_name:
+                  type: string
+                  maxLength: 30
+                last_name:
+                  type: string
+                  maxLength: 150
+                email:
+                  type: string
+                  format: email
+                  description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 email \u0430\
+                    \u0434\u0440\u0435\u0441"
+                  maxLength: 254
+                company:
+                  type: string
+                  description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043A\u043E\
+                    \u043C\u043F\u0430\u043D\u0438\u044E"
+                  maxLength: 40
+                position:
+                  type: string
+                  description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0434\u043E\
+                    \u043B\u0436\u043D\u043E\u0441\u0442\u044C"
+                  maxLength: 40
+                password:
+                  type: string
+                  writeOnly: true
+                  description: Iput password
+                password2:
+                  type: string
+                  writeOnly: true
+                  description: Iput password again
+                recaptcha:
+                  type: string
+                  writeOnly: true
+                contacts:
+                  type: array
+                  items:
+                    required: []
+                    properties:
+                      url:
+                        type: string
+                        readOnly: true
+                      Errors:
+                        type: string
+                        readOnly: true
+                        description: Error message(s)
+                      Status:
+                        type: boolean
+                        readOnly: true
+                        description: Http Status code
+                      person:
+                        type: string
+                        description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\u043D\
+                          \u043E\u0435 \u043B\u0438\u0446\u043E"
+                        maxLength: 50
+                      phone:
+                        type: string
+                        nullable: true
+                        description: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D"
+                        maxLength: 128
+                      city:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0433\
+                          \u043E\u0440\u043E\u0434"
+                        maxLength: 50
+                      street:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0443\
+                          \u043B\u0438\u0446\u0443"
+                        maxLength: 100
+                      house:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0434\
+                          \u043E\u043C"
+                        maxLength: 15
+                      structure:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                          \u043E\u0440\u043F\u0443\u0441"
+                        maxLength: 15
+                      building:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\
+                          \u0442\u0440\u043E\u0435\u043D\u0438\u0435"
+                        maxLength: 15
+                      apartment:
+                        type: string
+                        description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\
+                          \u0432\u0430\u0440\u0442\u0438\u0440\u0443"
+                        maxLength: 15
+                      user:
+                        type: string
+                        readOnly: true
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id141
+          application/xml: *id141
+          application/yaml: *id141
+          multipart/form-data: *id141
+      responses:
+        '200':
+          content:
+            application/json: &id142
+              schema:
+                required:
+                - first_name
+                - last_name
+                - email
+                - company
+                - position
+                properties:
+                  url: &id143
+                    type: string
+                    readOnly: true
+                  id: &id144
+                    type: integer
+                    readOnly: true
+                  Status: &id145
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id142
+            application/xml: *id142
+            text/html: *id142
+          description: OK
+        '400':
+          content:
+            application/json: &id146
+              schema:
+                required:
+                - first_name
+                - last_name
+                - email
+                - company
+                - position
+                properties:
+                  url: *id143
+                  id: *id144
+                  first_name:
+                    type: string
+                    maxLength: 30
+                  last_name:
+                    type: string
+                    maxLength: 150
+                  email:
+                    type: string
+                    description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 email\
+                      \ \u0430\u0434\u0440\u0435\u0441"
+                    maxLength: 254
+                  company:
+                    type: string
+                    description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u043A\
+                      \u043E\u043C\u043F\u0430\u043D\u0438\u044E"
+                    maxLength: 40
+                  position:
+                    type: string
+                    description: "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 \u0434\
+                      \u043E\u043B\u0436\u043D\u043E\u0441\u0442\u044C"
+                    maxLength: 40
+                  contacts:
+                    type: string
+                    items:
+                      required: []
+                      properties:
+                        url:
+                          type: string
+                          readOnly: true
+                        Errors:
+                          type: string
+                          readOnly: true
+                          description: Error message(s)
+                        Status:
+                          type: boolean
+                          readOnly: true
+                          description: Http Status code
+                        person:
+                          type: string
+                          description: "\u041A\u043E\u043D\u0442\u0430\u043A\u0442\
+                            \u043D\u043E\u0435 \u043B\u0438\u0446\u043E"
+                          maxLength: 50
+                        phone:
+                          type: string
+                          nullable: true
+                          description: "\u0422\u0435\u043B\u0435\u0444\u043E\u043D"
+                          maxLength: 128
+                        city:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u0433\u043E\u0440\u043E\u0434"
+                          maxLength: 50
+                        street:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u0443\u043B\u0438\u0446\u0443"
+                          maxLength: 100
+                        house:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u0434\u043E\u043C"
+                          maxLength: 15
+                        structure:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u043A\u043E\u0440\u043F\u0443\u0441"
+                          maxLength: 15
+                        building:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u0441\u0442\u0440\u043E\u0435\u043D\u0438\u0435"
+                          maxLength: 15
+                        apartment:
+                          type: string
+                          description: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435\
+                            \ \u043A\u0432\u0430\u0440\u0442\u0438\u0440\u0443"
+                          maxLength: 15
+                        user:
+                          type: string
+                          readOnly: true
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id145
+                xml:
+                  name: root
+            application/yaml: *id146
+            application/xml: *id146
+            text/html: *id146
+          description: Error in input data
+      description: "\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F\
+        \ (\u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A)"
+  /api/v1/partners/update/:
+    post:
+      operationId: update_infoUser
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id147
+            schema:
+              required: []
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  description: "\u041F\u0443\u0442\u044C \u043A \u0437\u0430\u0433\
+                    \u0440\u0443\u0436\u0430\u0435\u043C\u043E\u043C\u0443 \u0444\u0430\
+                    \u0439\u043B\u0443"
+                  pattern: "^(?:[a-z0-9\\.\\-\\+]*)://(?:[^\\s:@/]+(?::[^\\s:@/]*)?@)?(?:(?:25[0-5]|2[0-4]\\\
+                    d|[0-1]?\\d?\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}|\\\
+                    [[0-9a-f:\\.]+\\]|([a-z\xA1-\uFFFF0-9](?:[a-z\xA1-\uFFFF0-9-]{0,61}[a-z\xA1\
+                    -\uFFFF0-9])?(?:\\.(?!-)[a-z\xA1-\uFFFF0-9-]{1,63}(?<!-))*\\.(?!-)(?:[a-z\xA1\
+                    -\uFFFF-]{2,63}|xn--[a-z0-9]{1,59})(?<!-)\\.?|localhost))(?::\\\
+                    d{2,5})?(?:[/?#][^\\s]*)?\\Z"
+                file:
+                  type: string
+                  description: "\u0424\u0430\u0439\u043B, \u043F\u0435\u0440\u0435\
+                    \u0434\u0430\u0432\u0430\u0435\u043C\u044B\u0439 \u0447\u0435\u0440\
+                    \u0435\u0437 http"
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id147
+          application/xml: *id147
+          application/yaml: *id147
+          multipart/form-data: *id147
+      responses:
+        '201':
+          content: &id151
+            application/json: &id148
+              schema:
+                required: []
+                properties:
+                  Status: &id149
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id148
+            application/xml: *id148
+            text/html: *id148
+          description: "\u0421\u043E\u0437\u0434\u0430\u043D"
+        '404':
+          content: &id152
+            application/json: &id150
+              schema:
+                required: []
+                properties:
+                  Errors: &id153
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id149
+                xml:
+                  name: root
+            application/yaml: *id150
+            application/xml: *id150
+            text/html: *id150
+          description: "URL \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D"
+        '200':
+          content: *id151
+          description: OK
+        '401':
+          content: *id152
+          description: Auth required...
+        '403':
+          content: *id152
+          description: Forbidden...
+        '400':
+          content:
+            application/json: &id154
+              schema:
+                required: []
+                properties:
+                  Errors: *id153
+                  Status: *id149
+                  url:
+                    type: string
+                    description: "\u041F\u0443\u0442\u044C \u043A \u0437\u0430\u0433\
+                      \u0440\u0443\u0436\u0430\u0435\u043C\u043E\u043C\u0443 \u0444\
+                      \u0430\u0439\u043B\u0443"
+                    pattern: "^(?:[a-z0-9\\.\\-\\+]*)://(?:[^\\s:@/]+(?::[^\\s:@/]*)?@)?(?:(?:25[0-5]|2[0-4]\\\
+                      d|[0-1]?\\d?\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}|\\\
+                      [[0-9a-f:\\.]+\\]|([a-z\xA1-\uFFFF0-9](?:[a-z\xA1-\uFFFF0-9-]{0,61}[a-z\xA1\
+                      -\uFFFF0-9])?(?:\\.(?!-)[a-z\xA1-\uFFFF0-9-]{1,63}(?<!-))*\\\
+                      .(?!-)(?:[a-z\xA1-\uFFFF-]{2,63}|xn--[a-z0-9]{1,59})(?<!-)\\\
+                      .?|localhost))(?::\\d{2,5})?(?:[/?#][^\\s]*)?\\Z"
+                  file:
+                    type: string
+                    description: "\u0424\u0430\u0439\u043B, \u043F\u0435\u0440\u0435\
+                      \u0434\u0430\u0432\u0430\u0435\u043C\u044B\u0439 \u0447\u0435\
+                      \u0440\u0435\u0437 http"
+                xml:
+                  name: root
+            application/yaml: *id154
+            application/xml: *id154
+            text/html: *id154
+          description: Error in input data
+      description: "\u041E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435 \u043F\
+        \u0440\u0430\u0439\u0441\u0430 \u043E\u0442 \u043F\u043E\u0441\u0442\u0430\
+        \u0432\u0449\u0438\u043A\u0430 \u0438\u0437 \u0443\u043A\u0430\u0437\u0430\
+        \u043D\u043D\u043E\u0433\u043E url \u0438\u043B\u0438 \u0437\u0430\u0433\u0440\
+        \u0443\u0436\u0435\u043D\u043D\u043E\u0433\u043E \u0444\u0430\u0439\u043B\u0430\
+        \ (\u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A)"
+  /api/v1/contacts/bulkdelete/:
+    post:
+      operationId: bulk_deleteContactBulkDelete
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id155
+            schema:
+              required:
+              - items
+              properties:
+                items:
+                  type: string
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id155
+          application/xml: *id155
+          application/yaml: *id155
+          multipart/form-data: *id155
+      responses:
+        '200':
+          content:
+            application/json: &id156
+              schema:
+                required:
+                - items
+                properties:
+                  Status: &id157
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id156
+            application/xml: *id156
+            text/html: *id156
+          description: OK
+        '401':
+          content:
+            application/json: &id158
+              schema:
+                required:
+                - items
+                properties:
+                  Errors: &id159
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id157
+                xml:
+                  name: root
+            application/yaml: *id158
+            application/xml: *id158
+            text/html: *id158
+          description: Auth required...
+        '400':
+          content:
+            application/json: &id160
+              schema:
+                required:
+                - items
+                properties:
+                  Errors: *id159
+                  Status: *id157
+                  items:
+                    type: string
+                xml:
+                  name: root
+            application/yaml: *id160
+            application/xml: *id160
+            text/html: *id160
+          description: Error in input data
+      description: "\u0413\u0440\u0443\u043F\u043F\u043E\u0432\u043E\u0435 \u0443\u0434\
+        \u0430\u043B\u0435\u043D\u0438\u0435 (\u043D\u0435 \u0440\u0430\u0431\u043E\
+        \u0442\u0430\u0435\u0442 \u0432 \u0432\u0435\u0431 \u0430\u043F\u0438)"
+    delete:
+      operationId: bulk_deleteContactBulkDelete
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id161
+              schema:
+                required:
+                - items
+                properties:
+                  Status: &id162
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id161
+            application/xml: *id161
+            text/html: *id161
+          description: OK
+        '401':
+          content:
+            application/json: &id163
+              schema:
+                required:
+                - items
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id162
+                xml:
+                  name: root
+            application/yaml: *id163
+            application/xml: *id163
+            text/html: *id163
+          description: Auth required...
+      description: "\u0413\u0440\u0443\u043F\u043F\u043E\u0432\u043E\u0435 \u0443\u0434\
+        \u0430\u043B\u0435\u043D\u0438\u0435 (\u043D\u0435 \u0440\u0430\u0431\u043E\
+        \u0442\u0430\u0435\u0442 \u0432 \u0432\u0435\u0431 \u0430\u043F\u0438)"
+  /api/v1/basket/delete_goods/:
+    post:
+      operationId: delete_goodsOrderItemsString
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id164
+            schema:
+              required:
+              - items
+              properties:
+                items:
+                  type: string
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id164
+          application/xml: *id164
+          application/yaml: *id164
+          multipart/form-data: *id164
+      responses:
+        '200':
+          content:
+            application/json: &id165
+              schema:
+                required:
+                - items
+                properties:
+                  Status: &id166
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id165
+            application/xml: *id165
+            text/html: *id165
+          description: OK
+        '401':
+          content:
+            application/json: &id167
+              schema:
+                required:
+                - items
+                properties:
+                  Errors: &id168
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id166
+                xml:
+                  name: root
+            application/yaml: *id167
+            application/xml: *id167
+            text/html: *id167
+          description: Auth required...
+        '400':
+          content:
+            application/json: &id169
+              schema:
+                required:
+                - items
+                properties:
+                  items:
+                    type: string
+                  Errors: *id168
+                  Status: *id166
+                xml:
+                  name: root
+            application/yaml: *id169
+            application/xml: *id169
+            text/html: *id169
+          description: Error in input data
+      description: "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0442\u043E\u0432\u0430\
+        \u0440\u044B \u0438\u0437 \u043A\u043E\u0440\u0437\u0438\u043D\u044B"
+    delete:
+      operationId: delete_goodsOrderItemsString
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json: &id170
+              schema:
+                required:
+                - items
+                properties:
+                  Status: &id171
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id170
+            application/xml: *id170
+            text/html: *id170
+          description: OK
+        '401':
+          content:
+            application/json: &id172
+              schema:
+                required:
+                - items
+                properties:
+                  Errors:
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id171
+                xml:
+                  name: root
+            application/yaml: *id172
+            application/xml: *id172
+            text/html: *id172
+          description: Auth required...
+      description: "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0442\u043E\u0432\u0430\
+        \u0440\u044B \u0438\u0437 \u043A\u043E\u0440\u0437\u0438\u043D\u044B"
+  /api/v1/basket/add_goods/:
+    put:
+      operationId: add_itemsAddOrderItem
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id173
+            schema:
+              required:
+              - product_info
+              - quantity
+              properties:
+                product_info:
+                  type: integer
+                quantity:
+                  type: integer
+                items:
+                  type: object
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id173
+          application/xml: *id173
+          application/yaml: *id173
+          multipart/form-data: *id173
+      responses:
+        '200':
+          content:
+            application/json: &id174
+              schema:
+                required:
+                - product_info
+                - quantity
+                properties:
+                  Status: &id175
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id174
+            application/xml: *id174
+            text/html: *id174
+          description: OK
+        '401':
+          content:
+            application/json: &id176
+              schema:
+                required:
+                - product_info
+                - quantity
+                properties:
+                  Errors: &id177
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id175
+                xml:
+                  name: root
+            application/yaml: *id176
+            application/xml: *id176
+            text/html: *id176
+          description: Auth required...
+        '400':
+          content:
+            application/json: &id178
+              schema:
+                required:
+                - product_info
+                - quantity
+                properties:
+                  product_info:
+                    type: string
+                  quantity:
+                    type: string
+                  items:
+                    type: string
+                  Errors: *id177
+                  Status: *id175
+                xml:
+                  name: root
+            application/yaml: *id178
+            application/xml: *id178
+            text/html: *id178
+          description: Error in input data
+      description: "\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u0442\u043E\u0432\
+        \u0430\u0440\u044B \u0432 \u043A\u043E\u0440\u0437\u0438\u043D\u0443"
+  /api/v1/basket/set_quantity/:
+    put:
+      operationId: set_quantityBusketSetQuantity
+      parameters:
+      - name: fromat
+        in: query
+        required: false
+        description: Output format
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json: &id179
+            schema:
+              required:
+              - items
+              - id
+              - quantity
+              properties:
+                items:
+                  type: string
+                id:
+                  type: integer
+                  minimum: 0
+                quantity:
+                  type: integer
+                  minimum: 0
+              xml:
+                name: root
+          application/x-www-form-urlencoded: *id179
+          application/xml: *id179
+          application/yaml: *id179
+          multipart/form-data: *id179
+      responses:
+        '200':
+          content:
+            application/json: &id180
+              schema:
+                required:
+                - items
+                - id
+                - quantity
+                properties:
+                  Status: &id181
+                    type: boolean
+                    readOnly: true
+                    description: Http Status code
+                xml:
+                  name: root
+            application/yaml: *id180
+            application/xml: *id180
+            text/html: *id180
+          description: OK
+        '401':
+          content:
+            application/json: &id182
+              schema:
+                required:
+                - items
+                - id
+                - quantity
+                properties:
+                  Errors: &id183
+                    type: string
+                    readOnly: true
+                    description: Error message(s)
+                  Status: *id181
+                xml:
+                  name: root
+            application/yaml: *id182
+            application/xml: *id182
+            text/html: *id182
+          description: Auth required...
+        '400':
+          content:
+            application/json: &id184
+              schema:
+                required:
+                - items
+                - id
+                - quantity
+                properties:
+                  items:
+                    type: string
+                  id:
+                    type: string
+                    minimum: 0
+                  quantity:
+                    type: string
+                    minimum: 0
+                  Errors: *id183
+                  Status: *id181
+                xml:
+                  name: root
+            application/yaml: *id184
+            application/xml: *id184
+            text/html: *id184
+          description: Error in input data
+      description: "\u0418\u0437\u043C\u0435\u043D\u0438\u0442\u044C \u043A\u043E\u043B\
+        \u0438\u0447\u0435\u0441\u0442\u0432\u043E \u0442\u043E\u0432\u0430\u0440\u043E\
+        \u0432"

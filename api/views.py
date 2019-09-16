@@ -2,8 +2,10 @@ from django.contrib.auth.password_validation import validate_password
 
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.core.exceptions import ValidationError, ObjectDoesNotExist, PermissionDenied, FieldError
 from django.db import transaction, IntegrityError
-from django.db.models import Q, Sum, F, DecimalField #, Prefetch
+from django.db.models import Q, Sum, F, DecimalField
+from django.db.utils import Error as DBError, ConnectionDoesNotExist
 from django.urls import resolve
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as t
@@ -31,11 +33,11 @@ from .serializers import RegisterUserSerializer, CategorySerializer, CategoryDet
     ContactSerializer, PartnerUpdateSerializer, ContactBulkDeleteSerializer, \
     ShopSerializer, ProductInfoSerializer, UserLoginSerializer, ListUserSerializer, \
     CaptchaInfoSerializer, ConfirmUserSerializer, UpdateUserDetailsSerializer, \
-    ProductSerializer, ProductParameterSerializer, OrderSerializer, CreateOrderSerializer, \
-    OrderItemSerializer, AddOrderItemSerializer, ShowBasketSerializer, OrderItemsStringSerializer, \
+    ProductParameterSerializer, OrderSerializer, CreateOrderSerializer, \
+    AddOrderItemSerializer, ShowBasketSerializer, OrderItemsStringSerializer, \
     BusketSetQuantitySerializer   
 
-from .schemas import SimpleActionSchema, SimpleCreatorSchema, PartnerUpdateSchema, UserLoginSchema, CaptchaInfoSchema
+from .schemas import PartnerUpdateSchema, OrderCreateSchema, UserRegisterSchema
 from .signals import new_user_registered, new_order
 
 shared_user_properties = {
@@ -115,7 +117,6 @@ class BaseUserViewSet(SuperSelectableMixin,
 
     @action(detail=False, methods=('get',), name='Get reCaptcha public key',
             url_name='captcha', url_path='captcha',
-            schema=CaptchaInfoSchema(),
             )
     @method_decorator(never_cache)
     def captcha(self, request, *args, **kwargs):
@@ -127,7 +128,6 @@ class BaseUserViewSet(SuperSelectableMixin,
 
     @action(detail=False, methods=('post',), name='Get authorization token',
             url_name='login', url_path='login',
-            schema=UserLoginSchema(),
             )
     @method_decorator(never_cache)
     def login(self, request, *args, **kwargs):
@@ -146,12 +146,12 @@ class BaseUserViewSet(SuperSelectableMixin,
 
     @action(detail=False, methods=('post',), name='Register account',
             url_name='register', url_path='register',
-            schema=SimpleCreatorSchema(),
+            schema=UserRegisterSchema(),
             )
     @method_decorator(never_cache)
     def register(self, request, *args, **kwargs):       
         """
-        Регистрация покупателей
+        Регистрация
         """
         serializer = self.get_serializer_class()(data=request.data, context={'request': request, 'user_type': self.user_type})
         serializer.is_valid(raise_exception=True)
@@ -161,12 +161,11 @@ class BaseUserViewSet(SuperSelectableMixin,
 
     @action(detail=False, methods=('post',), name='Confirm account',
             url_name='confirm', url_path='confirm',
-            schema=SimpleActionSchema(),
             )
     @method_decorator(never_cache)
     def confirm(self, request, *args, **kwargs):
         """
-        Подтверждение регистрации покупателя
+        Подтверждение регистрации
         """
         serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -185,7 +184,6 @@ class BaseUserViewSet(SuperSelectableMixin,
     # получить данные
     @action(detail=False, methods=('get', 'put', ), name='Account details',
             url_name='details', url_path='details',
-            schema=SimpleActionSchema(),
             )
     @method_decorator(never_cache)
     def details(self, request, *args, **kwargs):
@@ -266,7 +264,6 @@ class PartnerViewSet(BaseUserViewSet):
 
     @action(detail=False, methods=('get', 'put'), name='Shop status control',
             url_name='state', url_path='state',
-            schema=SimpleActionSchema(),
             )
     @method_decorator(never_cache)
     def state(self, request, *args, **kwargs):
@@ -293,7 +290,6 @@ class PartnerViewSet(BaseUserViewSet):
 
     @action(detail=False, methods=('get', ), name='View orders',
             url_name='orders', url_path='orders',
-            schema=SimpleActionSchema(),
             # ordering_fields=('first_name', ),
             # ordering=('first_name', ),
             # search_fields=('first_name', ),
@@ -346,14 +342,13 @@ class ContactViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, 
         data = serializer.validated_data
         try:
             Contact.objects.create(user=request.user, **data)
-        except Exception as e:
+        except (DBError, ValidationError, ObjectDoesNotExist, PermissionDenied, FieldError, ConnectionDoesNotExist) as e:
             return ResponseBadRequest(e)
 
         return ResponseCreated()
 
     @action(detail=False, methods=('delete', 'post' ), name='Bulk delete contact information',
             url_name='bulkdelete', url_path='bulkdelete',
-            schema=SimpleActionSchema(),
             )
     def bulk_delete(self, request, *args, **kwargs):
         """
@@ -380,8 +375,8 @@ class ContactViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, 
             with transaction.atomic():
                 deleted_count = Contact.objects.filter(query).delete()[0] if objects_to_delete else 0
                 if deleted_count != objects_to_delete:
-                    raise Exception()
-        except Exception:
+                    raise ValidationError()
+        except (DBError, ValidationError, ObjectDoesNotExist, PermissionDenied, FieldError, ConnectionDoesNotExist):
             return ResponseBadRequest('Не удалось найти и удалить все указанные объекты. Операция отменена.')
 
         return ResponseOK(Deleted=deleted_count)
@@ -421,7 +416,7 @@ class ShopViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ProductParametersViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    Класс для поиска товаров
+    Параметры товаров
     """
 
     queryset = ProductParameter.objects.all()
@@ -435,7 +430,7 @@ class ProductParametersViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ProductInfoViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    Класс для поиска товаров
+    Поиск товаров
     """
 
     serializer_class = ProductInfoSerializer
@@ -481,11 +476,14 @@ class OrderViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, vi
     action_descriptions = {
         'list': t('Список заказов текущего пользователя'),
         'retrieve': t('Заказ текущего пользователя'),
+        'create': t('Оформить заказ')
     }
 
     action_serializers = {
         'create': CreateOrderSerializer
     }
+
+    schema = OrderCreateSchema()
 
     def get_queryset(self):
         if self.request.method == 'GET':
@@ -568,7 +566,6 @@ class BasketViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, v
     
     @action(detail=False, methods=('put',), name='Add goods to the cart',
             url_name='add_goods', url_path='add_goods',
-            schema=SimpleActionSchema(),
             )
     @method_decorator(never_cache)
     def add_items(self, request, *args, **kwargs):
@@ -610,7 +607,6 @@ class BasketViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, v
     # удалить товары из корзины
     @action(detail=False, methods=('delete', 'post'), name='Delete goods from the cart',
             url_name='delete_goods', url_path='delete_goods',
-            schema=SimpleActionSchema(),
             )
     @method_decorator(never_cache)
     def delete_goods(self, request, *args, **kwargs):
@@ -646,7 +642,6 @@ class BasketViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, v
 
     @action(detail=False, methods=('put',), name='Set quantity for goods',
             url_name='set_quantity', url_path='set_quantity',
-            schema=SimpleActionSchema(),
             )
     @method_decorator(never_cache)
     def set_quantity(self, request, *args, **kwargs):
@@ -674,396 +669,11 @@ class BasketViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, v
                 basket, _ = Order.objects.get_or_create(user_id=request.user.id, state='basket')
                 for order_item in items_dict:
                     if type(order_item['id']) != int or type(order_item['quantity']) != int:
-                        raise Exception()
+                        raise ValidationError()
                     OrderItem.objects.filter(order_id=basket.id, id=order_item['id']).update(
                         quantity=order_item['quantity'])
-        except Exception:
+        except (DBError, ValidationError, ObjectDoesNotExist, PermissionDenied, FieldError, ConnectionDoesNotExist):
             return ResponseBadRequest('Неверный формат запроса')
 
         return ResponseOK()
-        
-
-
-####################################################################################################
-
-# from django.conf import settings
-# from django.contrib.auth import authenticate
-# from django.contrib.auth.password_validation import validate_password
-# from django.core.files.uploadedfile import InMemoryUploadedFile as FileClass
-# from django.db import transaction
-# from django.db.models import Q
-# from django.urls import resolve
-# from django.utils.decorators import method_decorator
-# from django.utils.translation import gettext_lazy as t
-# from django.views.decorators.cache import cache_page, never_cache
-# from django.views.decorators.vary import vary_on_headers
-# from rest_framework import viewsets
-# from rest_framework.authtoken.models import Token
-# from rest_framework.decorators import api_view
-# from rest_framework.generics import ListAPIView, RetrieveAPIView
-# from rest_framework.permissions import IsAuthenticated
-# from rest_framework.response import Response
-# from rest_framework.reverse import reverse
-# from rest_framework.views import APIView
-
-# from core.models import Category, Shop
-# from core.partner_info_loader import load_partner_info
-# from core.utils import ViewSetViewSerializersMixin
-# from rest_auth.models import ConfirmEmailToken, Contact, ADDRESS_ITEMS_LIMIT
-# from .serializers import UserSerializer, CategorySerializer, CategoryDetailSerializer, \
-#     SeparateContactSerializer, \
-#     ShopSerializer, ProductInfoSerializer
-# from .signals import new_user_registered, new_order
-
-
-# @cache_page(settings.CACHE_TIMES['ROOT_API'])
-# @api_view(['GET'])
-# def api_root(request, *args, format=None, **kwargs):
-#     app_name = resolve(request.path).app_name 
-#     return Response({
-#         'partner/update': reverse(f'{app_name}:partner-update', request=request, format=format),
-#         'user/login': reverse(f'{app_name}:user-login', request=request, format=format),
-#         'user/register': reverse(f'{app_name}:user-register', request=request, format=format),
-#         'user/register/confirm': reverse(f'{app_name}:user-register-confirm', request=request, format=format),
-#         'user/password_reset': reverse(f'{app_name}:password-reset', request=request, format=format),
-#         'user/password_reset/confirm': reverse(f'{app_name}:password-reset-confirm', request=request, format=format),
-#         'user/details': reverse(f'{app_name}:user-details', request=request, format=format),
-#         'categories': reverse(f'{app_name}:categories', request=request, format=format),
-#         'user/contact': reverse(f'{app_name}:user-contact', request=request, format=format),
-#         'shops': reverse(f'{app_name}:shops', request=request, format=format),
-#         'products': reverse(f'{app_name}:products', request=request, format=format),
-#         'docs': reverse(f'{app_name}:openapi-schema', request=request, format=format),
-#         'swagger-ui': reverse(f'{app_name}:swagger-ui', request=request, format=format),
-#         'redoc': reverse(f'{app_name}:redoc', request=request, format=format),
-#     })
-
-
-# class PartnerUpdate(APIView):
-#     """
-#     Класс для обновления прайса от поставщика
-#     """
-
-#     throttle_scope = 'partner_update'
-#     permission_classes = [IsAuthenticated]
-
-#     @method_decorator(never_cache)
-#     def post(self, request, *args, **kwargs):
-
-#         if request.user.type != 'shop':
-#             return Response({'Status': False, 'Error': t('Только для магазинов')}, status=403)
-
-#         url = request.data.get('url')
-#         file_obj = request.data.get('file')
-
-#         return load_partner_info(url, file_obj, request.user.id)
-
-
-# class LoginAccount(APIView):
-#     """
-#     Класс для авторизации пользователей
-#     """
-
-#     @method_decorator(never_cache)
-#     def post(self, request, *args, **kwargs):
-
-#         if not {'email', 'password'}.issubset(request.data):
-#             return Response({'Status': False, 'Errors': t('Не указаны все необходимые аргументы')})
-
-#         user = authenticate(request, username=request.data['email'], password=request.data['password'])
-
-#         if user is None:
-#             return Response({'Status': False, 'Errors': t('Не удалось авторизовать')})
-
-#         if user.is_active:
-#             token, _ = Token.objects.get_or_create(user=user)
-
-#         return Response({'Status': True, 'Token': token.key})       
-
-
-# class RegisterAccount(APIView):
-#     """
-#     Для регистрации покупателей
-#     """
-
-#     @method_decorator(never_cache)
-#     def post(self, request, *args, **kwargs):
-
-#         # проверяем обязательные аргументы
-#         if not {'first_name', 'last_name', 'email', 'password', 'company', 'position'}.issubset(request.data):
-#             return Response({'Status': False, 'Errors': t('Не указаны все необходимые аргументы')})
-
-#         # проверяем пароль на сложность
-
-#         try:
-#             validate_password(request.data['password'])
-#         except Exception as password_error:
-#             error_array = []
-#             # noinspection PyTypeChecker
-#             for item in password_error:
-#                 error_array.append(item)
-#             return Response({'Status': False, 'Errors': {'password': error_array}})
-
-#         # проверяем данные для уникальности имени пользователя
-#         # request.data._mutable = True # request.data = request.data.copy()
-#         # request.data.update({})
-#         user_serializer = UserSerializer(data=request.data)
-#         if not user_serializer.is_valid():
-#             return Response({'Status': False, 'Errors': user_serializer.errors})
-
-#         # сохраняем пользователя
-#         user = user_serializer.save()
-#         user.set_password(request.data['password'])
-#         user.save()
-#         new_user_registered.send(sender=self.__class__, user_id=user.id)
-#         return Response({'Status': True}, status=201)
-
-
-# class ConfirmAccount(APIView):
-#     """
-#     Класс для подтверждения почтового адреса
-#     """
-
-#     @method_decorator(never_cache)
-#     def post(self, request, *args, **kwargs):
-
-#         # проверяем обязательные аргументы
-#         if not {'email', 'token'}.issubset(request.data):
-#             return Response({'Status': False, 'Errors': t('Не указаны все необходимые аргументы')})
-
-#         token = ConfirmEmailToken.objects.filter(user__email=request.data['email'],
-#                                                  key=request.data['token']).first()
-#         if not token:
-#             return Response({'Status': False, 'Errors': t('Неправильно указан токен или email')})
-
-#         token.user.is_active = True
-#         token.user.save()
-#         token.delete()
-#         return Response({'Status': True})
-        
-
-# class AccountDetails(APIView):
-#     """
-#     Класс для работы с данными пользователя
-#     """
-
-#     permission_classes = [IsAuthenticated]
-
-#     # получить данные
-#     @method_decorator(never_cache)
-#     def get(self, request, *args, **kwargs):
-#         serializer = UserSerializer(request.user)
-#         return Response(serializer.data)
-
-#     # Редактирование методом PUT
-#     @method_decorator(never_cache)
-#     def put(self, request, *args, **kwargs):
-
-#         # проверяем обязательные аргументы
-#         if 'password' in request.data:
-#             # проверяем пароль на сложность
-#             try:
-#                 validate_password(request.data['password'])
-#             except Exception as password_error:
-#                 error_array = []
-#                 # noinspection PyTypeChecker
-#                 for item in password_error:
-#                     error_array.append(item)
-#                 return Response({'Status': False, 'Errors': {'password': error_array}})
-#             else:
-#                 request.user.set_password(request.data['password'])
-
-#         if 'contacts' in request.data:
-#             contacts = request.data['contacts']
-#             if not isinstance(contacts, list) or len(contacts) > ADDRESS_ITEMS_LIMIT:
-#                 return Response({'Status': False, 'Errors': t('Число контактов должно быть не более {}').format(ADDRESS_ITEMS_LIMIT)})
-
-#         # проверяем остальные данные
-#         user_serializer = UserSerializer(request.user, data=request.data, partial=True)
-#         if user_serializer.is_valid():
-#             user_serializer.save()
-#             return Response({'Status': True})
-#         else:
-#             return Response({'Status': False, 'Errors': user_serializer.errors})
-
-
-# class CategoryView(ListAPIView):
-#     """
-#     Класс для просмотра категорий
-#     """
-
-#     throttle_scope = 'categories'
-
-#     queryset = Category.objects.all()
-#     serializer_class = CategorySerializer
-
-
-# class CategoryDetailView(RetrieveAPIView):
-#     """
-#     Класс для просмотра категорий
-#     """
-
-#     throttle_scope = 'categories'
-
-#     queryset = Category.objects.all()
-#     serializer_class = CategoryDetailSerializer
-
-
-# class ContactView(APIView):
-#     """
-#     Класс для работы с контактами покупателей
-#     """
-
-#     permission_classes = [IsAuthenticated]
-
-#     # получить мои контакты
-#     @method_decorator(vary_on_headers('Authorization'))
-#     def get(self, request, *args, **kwargs):
-#         contact = Contact.objects.filter(user_id=request.user.id)
-#         serializer = SeparateContactSerializer(contact, many=True)
-#         return Response(serializer.data)
-
-#     # добавить новый контакт
-#     @method_decorator(never_cache)
-#     def post(self, request, *args, **kwargs):
-
-#         if not 'phone' in request.data and not all([x in request.data for x in ('city', 'street', 'house')]):
-#             return Response({'Status': False, 'Errors': t('Не указаны все необходимые аргументы')})
-
-#         if Contact.objects.filter(user_id=request.user.id).count() >= ADDRESS_ITEMS_LIMIT:
-#             return Response({'Status': False,
-#                              'Errors': t('Нельзя добавить новый контакт. Уже добавлено {} контактов').format(ADDRESS_ITEMS_LIMIT)})
-
-#         data = request.data.copy()
-#         data.update({'user': request.user.id})
-#         serializer = SeparateContactSerializer(data=data)
-
-#         if not serializer.is_valid():
-#             Response({'Status': False, 'Errors': serializer.errors})
-
-#         serializer.save()
-#         return Response({'Status': True, 'data': serializer.data}, status=201)
-        
-#     # удалить контакт
-#     @method_decorator(never_cache)
-#     def delete(self, request, *args, **kwargs):
-
-#         items_string = request.data.get('items')
-#         if not items_string:
-#             return Response({'Status': False, 'Errors': t('Не указаны все необходимые аргументы')})
-
-#         items_list = items_string.split(',')
-#         query = Q()
-#         objects_to_delete = 0
-#         for contact_id in items_list:
-#             contact_id = to_positive_int(contact_id)
-#             if contact_id is None:
-#                 return Response({'Status': False, 'Errors': t('id контакта должен быть положительным числом')})
-#             query = query | Q(user_id=request.user.id, id=contact_id)
-#             objects_to_delete += 1
-
-#         deleted_count = 0
-#         try:
-#             with transaction.atomic():
-#                 deleted_count = Contact.objects.filter(query).delete()[0] if objects_to_delete else 0
-#                 if deleted_count != objects_to_delete:
-#                     raise Exception()
-#         except Exception:
-#             return Response({'Status': False, 'Error': t('Не удалось найти и удалить все указанные объекты. Операция отменена.')})
-
-#         return Response({'Status': True, 'Deleted': deleted_count})
-
-#     # редактировать контакт (полностью)
-#     @method_decorator(never_cache)
-#     def put(self, request, *args, **kwargs):
-
-#         if 'id' not in request.data or \
-#             (not 'phone' in request.data and not all([x in request.data for x in ('city', 'street', 'house')])):
-#                 return Response({'Status': False, 'Errors': t('Не указаны все необходимые аргументы')})
-
-#         if to_positive_int(request.data['id']) is None:
-#             return Response({'Status': False, 'Errors': t('id контакта должен быть положительным числом')})
-
-#         contact = Contact.objects.filter(id=request.data['id'], user_id=request.user.id).first()
-#         if not contact:
-#             return Response({'Status': False, 'Errors': t('Не найден контакт с id {}').format(request.data['id'])})
-
-#         data = request.data.copy()
-#         data.update({'user': request.user.id})
-
-#         serializer = SeparateContactSerializer(contact, data=data)
-#         if not serializer.is_valid():
-#             return Response({'Status': False, 'Errors': serializer.errors})
-
-#         serializer.save()
-#         return Response({'Status': True})
-
-#     # редактировать контакт (частично)
-#     @method_decorator(never_cache)
-#     def patch(self, request, *args, **kwargs):
-
-#         if 'id' not in request.data:
-#             return Response({'Status': False, 'Errors': t('Не указаны все необходимые аргументы')})
-
-#         if to_positive_int(request.data['id']) is None:
-#             return Response({'Status': False, 'Errors': t('id контакта должен быть положительным числом')})
-
-#         contact = Contact.objects.filter(id=request.data['id'], user_id=request.user.id).first()
-#         if not contact:
-#             return Response({'Status': False, 'Errors': t('Не найден контакт с id {}').format(request.data['id'])})
-
-#         serializer = SeparateContactSerializer(contact, data=request.data, partial=True)
-#         if not serializer.is_valid():
-#             return Response({'Status': False, 'Errors': serializer.errors})
-
-#         serializer.save()
-#         return Response({'Status': True})
-
-        
-# class ShopView(ListAPIView):
-#     """
-#     Класс для просмотра списка магазинов
-#     """
-
-#     throttle_scope = 'shops'
-
-#     queryset = Shop.objects.filter(state=True)
-#     serializer_class = ShopSerializer
-
-
-# class ShopDetailView(ListAPIView):
-#     """
-#     Класс для просмотра списка магазинов
-#     """
-
-#     throttle_scope = 'shops'
-
-#     queryset = Shop.objects.filter(state=True)
-#     serializer_class = ShopSerializer
-
-
-# class ProductInfoView(ListAPIView):
-#     """
-#     Класс для поиска товаров
-#     """
-
-#     queryset = Shop.objects.filter(state=True)
-#     serializer_class = ProductInfoSerializer
-
-#     def get_queryset(self):
-
-#         query = Q(shop__state=True)
-#         shop_id = self.request.query_params.get('shop_id')
-#         category_id = self.request.query_params.get('category_id')
-
-#         if shop_id:
-#             query = query & Q(shop_id=shop_id)
-
-#         if category_id:
-#             query = query & Q(product__category_id=category_id)
-
-#         # фильтруем и отбрасываем дубликаты
-#         return ProductInfo.objects.filter(
-#             query).select_related(
-#             'shop', 'product__category').prefetch_related(
-#             'product_parameters__parameter').distinct()
 

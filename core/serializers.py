@@ -15,7 +15,7 @@ class DefaultModelSerializer(serializers.HyperlinkedModelSerializer):
     Базовый класс сериалайзера ORM модели с полями для документирования ошибок и статуса
     """
     Errors = serializers.CharField(read_only=True, help_text=t('Error message(s)'), label=t('Error'))
-    Status = serializers.CharField(read_only=True, help_text=t('Http Status code'), label=t('Status code'))
+    Status = serializers.BooleanField(read_only=True, help_text=t('Http Status code'), label=t('Status code'))
 
 
 def ModelPresenter(model, fields, outer_properties=None):

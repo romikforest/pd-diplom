@@ -19,6 +19,7 @@ def send_mail(subject, message, from_email, recipient_list, fail_silently=False,
                        fail_silently=fail_silently, auth_user=auth_user, auth_password=auth_password, connection=connection, html_message=html_message)
     except Exception as e:
         logging.warning(f'Error sending email: {str(e)}. subject={subject}, recipient_list={recipient_list}')
+        raise e
 
 @app.task
 def send_multi_alternative(subject='', body='', from_email=None, to=None, bcc=None,
@@ -62,8 +63,9 @@ def do_import():
         response = None
         try:
             response = load_partner_info(shop.url, None, shop.user_id)
-        except Exception as e:
+        except Exception:
             report_error(shop.user)
+            raise
         else:
             if response and is_success(response.status_code):
                 report_success(shop.user)

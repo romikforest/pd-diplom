@@ -3,6 +3,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import Group
 from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django_rest_passwordreset.tokens import get_token_generator
@@ -160,7 +161,7 @@ class Contact(models.Model):
         if self.user.contacts.count() < ADDRESS_ITEMS_LIMIT or self.user.contacts.filter(id=self.id).exists():
             super(Contact, self).save(*args, **kwargs)
         else:
-            raise Exception(f'There are already {ADDRESS_ITEMS_LIMIT} contacts. No more are allowed.')
+            raise ValidationError(f'There are already {ADDRESS_ITEMS_LIMIT} contacts. No more are allowed.')
 
     class Meta:
         verbose_name = _('Контакт')
