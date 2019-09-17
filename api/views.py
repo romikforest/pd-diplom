@@ -35,7 +35,7 @@ from .serializers import RegisterUserSerializer, CategorySerializer, CategoryDet
     CaptchaInfoSerializer, ConfirmUserSerializer, UpdateUserDetailsSerializer, \
     ProductParameterSerializer, OrderSerializer, CreateOrderSerializer, \
     AddOrderItemSerializer, ShowBasketSerializer, OrderItemsStringSerializer, \
-    BusketSetQuantitySerializer   
+    BusketSetQuantitySerializer, RetriveUserDetailsSerializer   
 
 from .schemas import PartnerUpdateSchema, OrderCreateSchema, UserRegisterSchema
 from .signals import new_user_registered, new_order
@@ -52,7 +52,7 @@ shared_user_properties = {
     'ordering': ('last_name', 'id', ),
 
     'action_serializers': {
-        'retrieve': UpdateUserDetailsSerializer,
+        'retrieve': RetriveUserDetailsSerializer,
         'login': UserLoginSerializer,
         'captcha': CaptchaInfoSerializer,
         'register': RegisterUserSerializer,
@@ -115,6 +115,11 @@ class BaseUserViewSet(SuperSelectableMixin,
     action_querysets = shared_user_properties.get('action_querysets', {})
     action_permissions = shared_user_properties.get('action_permissions', {})
 
+    def get_serializer_class(self):
+        if self.action == 'details' and self.request.method == 'GET':
+            return RetriveUserDetailsSerializer
+        return super(BaseUserViewSet, self).get_serializer_class()
+
     @action(detail=False, methods=('get',), name='Get reCaptcha public key',
             url_name='captcha', url_path='captcha',
             )
@@ -138,11 +143,10 @@ class BaseUserViewSet(SuperSelectableMixin,
         serializer.is_valid(raise_exception=True)
         data = serializer.data
         user = authenticate(request, username=data['email'], password=data['password'])
-        if user is None:
-            return Response({'Status': False, 'Errors': t('Не удалось авторизовать')})
-        if user.is_active:
-            token, _ = Token.objects.get_or_create(user=user)
-        return ResponseOK(token=token.key)
+        if user and user.is_active:
+            token, _ = Token.objects.get_or_create(user_id=user.id)
+            return ResponseOK(token=token.key)
+        return ResponseForbidden('Не удалось авторизовать')
 
     @action(detail=False, methods=('post',), name='Register account',
             url_name='register', url_path='register',

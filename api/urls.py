@@ -47,8 +47,10 @@ router.root_view_pre_items['users/password_reset/confirm'] = 'password-reset-con
 
 
 urlpatterns = [
-    re_path('^users/password_reset/?$', reset_password_request_token, name='password-reset'),
-    re_path('^users/password_reset/confirm/?$', reset_password_confirm, name='password-reset-confirm'),
+    re_path('^users/password_reset/?$', reset_password_request_token, name='user-password-reset'),
+    re_path('^users/password_reset/confirm/?$', reset_password_confirm, name='user-password-reset-confirm'),
+    re_path('^partners/password_reset/?$', reset_password_request_token, name='partner-password-reset'),
+    re_path('^partners/password_reset/confirm/?$', reset_password_confirm, name='partner-password-reset-confirm'),
     re_path('^docs/?$', cache_page(settings.CACHE_TIMES['OPENAPI'])(openapi_view), name='openapi-schema'),
     re_path('^swagger-ui/?$', cache_page(settings.CACHE_TIMES['SWAGGER'])(TemplateView.as_view(
         template_name='api/swagger-ui.html',

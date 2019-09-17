@@ -57,10 +57,28 @@ class ResponsesSchema(AutoSchema):
             content = content[item]
         properties = {}
         for key, value in content.items():
-            if not is_dict(value) or not 'readOnly' in value:
+            if not is_dict(value):
+                continue
+            if not 'type' in value or value['type'] == 'array':
+                properties[key] = value
+            if not 'readOnly' in value:
+                continue
+            if key == 'Status':
+                if hasattr(self.view, 'action') and (self.view.action == 'list' or self.view.action == 'retrieve'):
+                    properties.pop('Status', None)
+                    continue
+                properties[key] = value
                 continue
             if key != 'Errors' and value['readOnly'] == True:
                 properties[key] = value
+
+        if hasattr(self.view, 'action') and self.view.action == 'list':
+            properties = {
+                'count': {'type': 'integer', 'readOnly': True, 'description': 'Number of pages'},
+                'next': {'type': 'string', 'readOnly': True, 'description': 'Next page'},
+                'previous': {'type': 'string', 'readOnly': True, 'description': 'Previous page'},
+                'results': {'type': 'array', 'items': {'required': [], 'properties': properties}},
+            }
 
         return properties
 

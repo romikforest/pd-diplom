@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError, ObjectDoesNotExist, PermissionDenied, FieldError
 from django.db.utils import Error as DBError, ConnectionDoesNotExist
@@ -133,6 +134,17 @@ class RegisterUserSerializer(DefaultModelSerializer):
         if contacts and (not isinstance(contacts, list) or len(contacts) > ADDRESS_ITEMS_LIMIT):
             raise serializers.ValidationError(dict(contacts=t('Число контактов должно быть не более {}').format(ADDRESS_ITEMS_LIMIT)))
         return super(RegisterUserSerializer, self).validate(data)
+
+
+class RetriveUserDetailsSerializer(DefaultModelSerializer):
+
+    contacts = ContactSerializer(many=True, required=False)
+
+    class Meta:
+        model = User
+        fields = ('url', 'id', 'first_name', 'last_name', 'email', 'company', 'position', 'contacts', 'Errors', 'Status', )
+        read_only_fields = ('url', 'id', 'first_name', 'last_name', 'email', 'company', 'position', 'contacts', )
+
 
 class UpdateUserDetailsSerializer(DefaultModelSerializer):
 

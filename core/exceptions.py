@@ -14,7 +14,7 @@ def custom_exception_handler(exc, context):
         if 'Status' not in response.data:
             response.data['Status'] = False
         if 'Errors' not in response.data and 'detail' in response.data:
-            response.data['Error'] = response.data['detail']
+            response.data['Errors'] = response.data['detail']
             del response.data['detail']
 
     return response
