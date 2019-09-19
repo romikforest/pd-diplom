@@ -30,6 +30,17 @@ class ContactSerializer(DefaultModelSerializer):
         fields = '__all__'
         read_only_fields = ('id', 'url', 'user', )
 
+        extra_kwargs = {
+            'person': {'default': ''},
+            'phone': {'default': ''},
+            'city': {'default': ''},
+            'street': {'default': ''},
+            'house': {'default': ''},
+            'structure': {'default': ''},
+            'building': {'default': ''},
+            'apartment': {'default': ''},
+        }
+
     def validate(self, data):
         phone = data.get('phone')
         city = data.get('city')
@@ -136,7 +147,7 @@ class RegisterUserSerializer(DefaultModelSerializer):
         return super(RegisterUserSerializer, self).validate(data)
 
 
-class RetriveUserDetailsSerializer(DefaultModelSerializer):
+class RetrieveUserDetailsSerializer(DefaultModelSerializer):
 
     contacts = ContactSerializer(many=True, required=False)
 
@@ -171,7 +182,7 @@ class UpdateUserDetailsSerializer(DefaultModelSerializer):
             for contact in contact_data:
                 try:
                     contact, _ = Contact.objects.get_or_create(user_id=instance.id, **contact)
-                    instance.contacts.add(contact.id)
+                    instance.contacts.add(contact)
                 except (DBError, ValidationError, ObjectDoesNotExist, PermissionDenied, FieldError, ConnectionDoesNotExist):
                     break
 
@@ -298,35 +309,42 @@ class OrderItemsStringSerializer(DefaultModelSerializer):
     # items = serializers.ListField(child=serializers.IntegerField(min_value=0))
     items = serializers.CharField()
     class Meta:
-        model = Order
+        model = OrderItem
         fields = ('items', 'Errors', 'Status',  )
 
 
-class BusketSetQuantitySerializer(DefaultModelSerializer):
+class BasketSetQuantitySerializer(DefaultModelSerializer):
+    class KeyField(serializers.PrimaryKeyRelatedField):
+        def get_queryset(self):
+            if Order.objects.filter(user_id=self.context['request'].user.id, state='basket').exists():
+                return Order.objects.get(user_id=self.context['request'].user.id, state='basket').ordered_items.all()
+            return OrderItem.objects.none()
+
+
+    id = KeyField(required=False, read_only=False, allow_null=False)
+
     # items = serializers.ListField(child=serializers.IntegerField(min_value=0))
     items = serializers.CharField()
-    id = serializers.IntegerField(min_value=0)
+    # id = serializers.IntegerField(min_value=0)
     quantity = serializers.IntegerField(min_value=0)
 
     class Meta:
-        model = Order
+        model = OrderItem
         fields = ('items', 'id', 'quantity', 'Errors', 'Status',  )
 
 
 class CreateOrderSerializer(DefaultModelSerializer):
 
-    # class KeyField(serializers.PrimaryKeyRelatedField):
-    #     def get_queryset(self):
-    #         return Order.objects.filter(user_id=self.context['request'].user.id, state='basket') #.exclude(state='basket')
-
-
-    # id = KeyField(required=True, read_only=False, allow_null=False)
+    class KeyField(serializers.PrimaryKeyRelatedField):
+        def get_queryset(self):
+            return Contact.objects.filter(user_id=self.context['request'].user.id).all()
 
     def get_fields(self, *args, **kwargs):
         fields = super(CreateOrderSerializer, self).get_fields(*args, **kwargs)
-        if self.context['request']:
-            fields['contact'].queryset = self.context['request'].user.contacts
+        fields['contact'].queryset = self.context['request'].user.contacts
         return fields
+
+    contact = KeyField(required=True, read_only=False, allow_null=False)
 
     class Meta:
         model = Order

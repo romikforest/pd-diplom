@@ -59,17 +59,17 @@ class CustomDefaultRouter(routers.DefaultRouter):
         return self.APIRootView.as_view(api_root_dict=api_root_dict)
 
 
-class CustomSimpleRouter(routers.SimpleRouter):
-    """
-    Миксин для SimpleRouter
-    Роутер генерирует пути для конечного слеша и без него
-    """
+# class CustomSimpleRouter(routers.SimpleRouter):
+#     """
+#     Миксин для SimpleRouter
+#     Роутер генерирует пути для конечного слеша и без него
+#     """
 
-    def get_urls(self):
-        urls = super(CustomSimpleRouter, self).get_urls()
-        for i in range(len(urls)):
-            regex = str(urls[i].pattern)
-            if regex[-2:] == '/$':
-                regex = regex[:-2] + '/?$'
-            urls[i] = url(regex=regex, view=urls[i].callback, name=urls[i].name)
-        return urls
+#     def get_urls(self):
+#         urls = super(CustomSimpleRouter, self).get_urls()
+#         for i in range(len(urls)):
+#             regex = str(urls[i].pattern)
+#             if regex[-2:] == '/$':
+#                 regex = regex[:-2] + '/?$'
+#             urls[i] = url(regex=regex, view=urls[i].callback, name=urls[i].name)
+#         return urls

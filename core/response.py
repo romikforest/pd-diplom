@@ -22,7 +22,10 @@ def UniversalResponse(error=None, format=None, status=418, **kwargs):
     response = {'Status': False}
     if error:
         if format:
-            response['Errors'] = t(error if is_dict(error) else str(error)).format(**format if is_dict(format) else str(format))
+            if is_dict(format):
+                response['Errors'] = t(error if is_dict(error) else str(error)).format(**format)
+            else:
+                response['Errors'] = t(error if is_dict(error) else str(error)).format(str(format))
         else:
             response['Errors'] = t(error if is_dict(error) else str(error))
     if kwargs:

@@ -6,11 +6,12 @@ from django.views.generic import TemplateView
 from django_rest_passwordreset.views import reset_password_request_token, reset_password_confirm
 from rest_framework.schemas import get_schema_view
 from rest_framework.urlpatterns import format_suffix_patterns
+import sys
 
 from core.routers import CustomDefaultRouter
 from .views import UserViewSet, PartnerViewSet, OrderViewSet, \
     ShopViewSet, ProductInfoViewSet, BasketViewSet, \
-    CategoryViewSet, ContactViewSet, ProductParametersViewSet
+    CategoryViewSet, ContactViewSet, ProductParametersViewSet, test_url
 
 app_name = 'api'
 
@@ -61,6 +62,9 @@ urlpatterns = [
         extra_context={'schema_url': f'{app_name}:openapi-schema'}
     )), name='redoc'),
 ]
+
+if 'test' in sys.argv:
+    urlpatterns += [ path('test/shop1.<str:ext>', test_url, name='test_url') ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
 urlpatterns += router.urls

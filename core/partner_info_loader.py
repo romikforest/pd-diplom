@@ -28,6 +28,7 @@ def load_partner_info(url=None, file_obj=None, user_id=0):
     """
     Обновление прайса от поставщика
     """
+
     if not url and not (file_obj and isinstance(file_obj, FileClass)):
         return ResponseBadRequest('Не указаны все необходимые аргументы. Нужно указать url или загрузить файл')
     if file_obj:
@@ -43,13 +44,14 @@ def load_partner_info(url=None, file_obj=None, user_id=0):
 
         try:
             response = get(url)
+            response.raise_for_status()
         except RequestException as e:
             return ResponseNotFound(e)
         _, extension = os.path.splitext(url)
         stream = response.content
         mime = response.headers.get('content-type')
     try:
-        if mime in ('application/x-yaml', 'text/yaml'):
+        if mime in ('application/yaml', 'text/yaml'):
             data = load_yaml(stream, Loader=Loader)
         elif mime in ('application/json', 'text/json'):
             data = load_json(stream)

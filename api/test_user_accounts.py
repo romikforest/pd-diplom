@@ -1,5 +1,6 @@
 from copy import deepcopy
 from django.conf import settings
+from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError, ObjectDoesNotExist, PermissionDenied, FieldError
 from django.db.utils import Error as DBError, ConnectionDoesNotExist
 from django.urls import reverse
@@ -8,9 +9,12 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
-from rest_auth.models import User, ConfirmEmailToken, Contact
+from rest_auth.models import User, ConfirmEmailToken, Contact, ADDRESS_ITEMS_LIMIT
 
 class AccountsAPITests(APITestCase):
+    """
+    Тесты эндпойнтов для работы с аккаунтами покупателей
+    """
 
     user_type = 'buyer'
 
@@ -295,7 +299,7 @@ class AccountsAPITests(APITestCase):
         self.assertNotIn('Errors', response.data)
         self.assertIn('Status', response.data)
         self.assertEqual(response.data['Status'], True)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
 
 
     def test_confirm_with_random_token_rejected(self):
@@ -312,7 +316,7 @@ class AccountsAPITests(APITestCase):
         self.assertIn('Status', response.data)
         self.assertEqual(response.data['Status'], False)
         self.assertIn('Errors', response.data)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
 
     
     def test_confirm_without_email_rejected(self):
@@ -329,7 +333,7 @@ class AccountsAPITests(APITestCase):
         self.assertIn('Status', response.data)
         self.assertEqual(response.data['Status'], False)
         self.assertIn('email', response.data)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
 
 
     def test_confirm_without_token_rejected(self):
@@ -345,7 +349,7 @@ class AccountsAPITests(APITestCase):
         self.assertIn('Status', response.data)
         self.assertEqual(response.data['Status'], False)
         self.assertIn('token', response.data)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
 
 
     def test_user_login(self):
@@ -366,7 +370,7 @@ class AccountsAPITests(APITestCase):
         self.assertIn('Status', response.data)
         self.assertEqual(response.data['Status'], True)
         self.assertIn('token', response.data)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
 
 
     def try_user_login_without_required_field(self, field):
@@ -387,7 +391,7 @@ class AccountsAPITests(APITestCase):
         self.assertIn(field, response.data)
         self.assertIn('Status', response.data)
         self.assertEqual(response.data['Status'], False)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
         self.assertNotIn('token', response.data)
 
 
@@ -429,7 +433,7 @@ class AccountsAPITests(APITestCase):
         self.assertIn('Errors', response.data)
         self.assertIn('Status', response.data)
         self.assertEqual(response.data['Status'], False)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
         self.assertNotIn('token', response.data)
 
 
@@ -451,7 +455,7 @@ class AccountsAPITests(APITestCase):
         self.assertNotIn('Errors', response.data)
         self.assertIn('status', response.data)
         self.assertEqual(response.data['status'], 'OK')
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
 
         reset_confirm_data = dict(password=password, token=ResetPasswordToken.objects.get(user_id=user.id).key)
         response = self.client.post(self.password_reset_confirm_url, reset_confirm_data, format='json', HTTP_USER_AGENT='test client')
@@ -459,7 +463,7 @@ class AccountsAPITests(APITestCase):
         self.assertNotIn('Errors', response.data)
         self.assertIn('status', response.data)
         self.assertEqual(response.data['status'], 'OK')
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
 
     
     def test_get_captcha(self):
@@ -471,7 +475,7 @@ class AccountsAPITests(APITestCase):
         self.assertNotIn('Errors', response.data)
         self.assertIn('Status', response.data)
         self.assertEqual(response.data['Status'], True)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
         self.assertIn('public_key', response.data)
 
 
@@ -492,7 +496,7 @@ class AccountsAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotIn('Errors', response.data)
         self.assertNotIn('Status', response.data)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
         self.assertIn('count', response.data)
         self.assertIn('next', response.data)
         self.assertIn('previous', response.data)
@@ -514,7 +518,7 @@ class AccountsAPITests(APITestCase):
         self.assertIn('Errors', response.data)
         self.assertIn('Status', response.data)
         self.assertEqual(response.data['Status'], False)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
 
 
     def test_user_retrieve(self):
@@ -533,7 +537,7 @@ class AccountsAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotIn('Errors', response.data)
         self.assertNotIn('Status', response.data)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
         self.assertIn('url', response.data)
         self.assertIn('id', response.data)
         self.assertIn('first_name', response.data)
@@ -558,7 +562,7 @@ class AccountsAPITests(APITestCase):
         self.assertIn('Errors', response.data)
         self.assertIn('Status', response.data)
         self.assertEqual(response.data['Status'], False)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
 
 
     def test_user_details(self):
@@ -578,7 +582,7 @@ class AccountsAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotIn('Errors', response.data)
         self.assertNotIn('Status', response.data)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
         self.assertIn('url', response.data)
         self.assertIn('id', response.data)
         self.assertIn('first_name', response.data)
@@ -609,7 +613,7 @@ class AccountsAPITests(APITestCase):
         self.assertIn('Errors', response.data)
         self.assertIn('Status', response.data)
         self.assertEqual(response.data['Status'], False)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
 
 
     def try_user_details_put(self, field, value):
@@ -630,7 +634,7 @@ class AccountsAPITests(APITestCase):
         self.assertNotIn('Errors', response.data)
         self.assertIn('Status', response.data)
         self.assertEqual(response.data['Status'], True)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
 
         if field != 'email':
             email = self.data['email']
@@ -690,7 +694,7 @@ class AccountsAPITests(APITestCase):
         self.assertIn('Errors', response.data)
         self.assertIn('Status', response.data)
         self.assertEqual(response.data['Status'], False)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
 
 
     def test_user_details_put_email_validation(self):
@@ -711,10 +715,10 @@ class AccountsAPITests(APITestCase):
         self.assertIn('email', response.data)
         self.assertIn('Status', response.data)
         self.assertEqual(response.data['Status'], False)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
 
 
-    def try_user_details_put_password(self):
+    def test_user_details_put_password(self):
         """
         Проверка, что авторизированный пользователь может изменить пароль
         """
@@ -734,13 +738,13 @@ class AccountsAPITests(APITestCase):
         self.assertNotIn('Errors', response.data)
         self.assertIn('Status', response.data)
         self.assertEqual(response.data['Status'], True)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
 
         user = authenticate(username=email, password=new_password)
-        self.assertIsTrue(bool(user))
+        self.assertTrue(user)
 
 
-    def try_user_details_put_password_validation(self):
+    def test_user_details_put_password_validation(self):
         """
         Проверка, что при попытке смены пароля происходит его валидация
         """
@@ -756,15 +760,101 @@ class AccountsAPITests(APITestCase):
         with self.settings(AUTH_PASSWORD_VALIDATORS=settings.NON_DEBUG_PASSWORD_VALIDATORS):
             response = self.client.put(self.details_url, data={'password': new_password}, format='json')
         
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertIn('Errors', response.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('password', response.data)
         self.assertIn('Status', response.data)
         self.assertEqual(response.data['Status'], False)
-        self.assertIn(f'application/json', response.accepted_media_type)
+        self.assertIn('application/json', response.accepted_media_type)
 
+    def test_user_creation_with_too_many_contacts(self):
+        """
+        Проверка, что нельзя зарегистрировать новый аккаунт со слишком большим числом контактов
+        (на входе json)
+        """
+
+        data = deepcopy(self.data)
+        data['contacts'] = [ {'phone': '+79168008080'} ] * (ADDRESS_ITEMS_LIMIT + 1)
+
+        with self.settings(AUTH_PASSWORD_VALIDATORS=[], RECAPTCHA_TESTING=True):
+            response = self.try_to_create_user(data, 'json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('contacts', response.data)
+        self.assertIn('Status', response.data)
+        self.assertEqual(response.data['Status'], False)
+
+
+    def test_user_creation_with_almost_too_many_contacts(self):
+        """
+        Проверка, что можно зарегистрировать новый аккаунт с максимальным числом контактов
+        (на входе json)
+        """
+
+        data = deepcopy(self.data)
+        data['contacts'] = [ {'phone': '+79168008080'} ] * ADDRESS_ITEMS_LIMIT
+
+        with self.settings(AUTH_PASSWORD_VALIDATORS=[], RECAPTCHA_TESTING=True):
+            response = self.try_to_create_user(data, 'json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('Status', response.data)
+        self.assertEqual(response.data['Status'], True)
+
+    def test_user_details_put_almost_too_many_contacts(self):
+        """
+        Проверка, что авторизированный пользователь может добавить максимальное число контактов
+        """
+
+        self.create_user()
+        
+        email = self.data['email']
+        user = User.objects.get(email=email)
+        token = Token.objects.get_or_create(user_id=user.id)[0].key
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {token}')
+
+        data = deepcopy(self.data)
+        data['contacts'] = [ {'phone': '+79168008080'} ] * ADDRESS_ITEMS_LIMIT
+
+        response = self.client.put(self.details_url, data=data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn('contacts', response.data)
+        self.assertNotIn('Errors', response.data)
+        self.assertIn('Status', response.data)
+        self.assertEqual(response.data['Status'], True)
+        self.assertIn('application/json', response.accepted_media_type)
+
+    def test_user_details_put_too_many_contacts(self):
+        """
+        Проверка, что авторизированный пользователь не может добавить слишком много контактов
+        """
+
+        self.create_user()
+        
+        email = self.data['email']
+        user = User.objects.get(email=email)
+        token = Token.objects.get_or_create(user_id=user.id)[0].key
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {token}')
+
+        data = deepcopy(self.data)
+        data['contacts'] = [ {'phone': '+79168008080'} ] * (ADDRESS_ITEMS_LIMIT + 1)
+
+        response = self.client.put(self.details_url, data=data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('contacts', response.data)
+        self.assertIn('Status', response.data)
+        self.assertEqual(response.data['Status'], False)
+        self.assertIn('application/json', response.accepted_media_type)
+        
 
 
 class PartnerAccountsAPITests(AccountsAPITests):
+    """
+    Тесты эндпойнтов для работы с аккаунтами поставщиков 
+    """
     
     url = reverse('api:partner-register')
     confirm_url = reverse('api:partner-confirm')

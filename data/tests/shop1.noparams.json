@@ -1,0 +1,49 @@
+{
+  "version": "v1.0",
+  "shop": "Связной",
+  "categories": [
+    {
+      "name": "Смартфоны"
+    },
+    {
+      "name": "Аксессуары"
+    },
+    {
+      "name": "Flash-накопители"
+    }
+  ],
+  "goods": [
+    {
+      "id": 4216292,
+      "category": "Смартфоны",
+      "name": "Смартфон Apple iPhone XS Max 512GB (золотистый)",
+      "price": 110000,
+      "price_rrc": 116990,
+      "quantity": 14
+    },
+    {
+      "id": 4216313,
+      "category": "Смартфоны",
+      "name": "Смартфон Apple iPhone XR 256GB (красный)",
+      "price": 65000,
+      "price_rrc": 69990,
+      "quantity": 9
+    },
+    {
+      "id": 4216226,
+      "category": "Смартфоны",
+      "name": "Смартфон Apple iPhone XR 256GB (черный)",
+      "price": 65000,
+      "price_rrc": 69990,
+      "quantity": 5
+    },
+    {
+      "id": 4672670,
+      "category": "Смартфоны",
+      "name": "Смартфон Apple iPhone XR 128GB (синий)",
+      "price": 60000,
+      "price_rrc": 64990,
+      "quantity": 7
+    }
+  ]
+}

@@ -14,8 +14,8 @@ def is_list(value):
     """
     Проверка, что объект value является списком
     """
-    return type(value) == list
-    # return isinstance(value, collections.Iterable)
+    # return type(value) == list
+    return isinstance(value, collections.Iterable)
 
 # Конверторы. Возвращают None при ошибке:
 

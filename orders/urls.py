@@ -20,11 +20,11 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.urls import path, include
 
-
 urlpatterns = [
     path('', include('rest_framework.urls', namespace='rest_framework')),
     path('admin/', admin.site.urls),
     path('api/v1/', include(('api.urls', 'api'), namespace='v1'), name='api_v1'),
     path('', lambda x: HttpResponseRedirect('/api/v1/'), name='home'),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) \
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT, name='media') \
   + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+

@@ -1,0 +1,121 @@
+<root>
+    <version>v1.0</version>
+    <shop>Связной</shop>
+    <categories>
+        <list-item>
+            <name>Смартфоны</name>
+        </list-item>
+        <list-item>
+            <name>Аксессуары</name>
+        </list-item>
+        <list-item>
+            <name>Flash-накопители</name>
+        </list-item>
+    </categories>
+    <goods>
+        <list-item>
+            <id>4216292</id>
+            <category>Смартфоны</category>
+            <name>Смартфон Apple iPhone XS Max 512GB (золотистый)</name>
+            <price>110000</price>
+            <price_rrc>116990</price_rrc>
+            <quantity>14</quantity>
+            <parameters>
+                <list-item>
+                    <name>Диагональ (дюйм)</name>
+                    <value>6.5</value>
+                </list-item>
+                <list-item>
+                    <name>Разрешение (пикс)</name>
+                    <value>2688x1242</value>
+                </list-item>
+                <list-item>
+                    <name>Встроенная память (Гб)</name>
+                    <value>512</value>
+                </list-item>
+                <list-item>
+                    <name>Цвет</name>
+                    <value>золотистый</value>
+                </list-item>
+            </parameters>
+        </list-item>
+        <list-item>
+            <id>4216313</id>
+            <category>Смартфоны</category>
+            <name>Смартфон Apple iPhone XR 256GB (красный)</name>
+            <price>65000</price>
+            <price_rrc>69990</price_rrc>
+            <quantity>9</quantity>
+            <parameters>
+                <list-item>
+                    <name>Диагональ (дюйм)</name>
+                    <value>6.1</value>
+                </list-item>
+                <list-item>
+                    <name>Разрешение (пикс)</name>
+                    <value>1792x828</value>
+                </list-item>
+                <list-item>
+                    <name>Встроенная память (Гб)</name>
+                    <value>256</value>
+                </list-item>
+                <list-item>
+                    <name>Цвет</name>
+                    <value>красный</value>
+                </list-item>
+            </parameters>
+        </list-item>
+        <list-item>
+            <id>4216226</id>
+            <category>Смартфоны</category>
+            <name>Смартфон Apple iPhone XR 256GB (черный)</name>
+            <price>65000</price>
+            <price_rrc>69990</price_rrc>
+            <quantity>5</quantity>
+            <parameters>
+                <list-item>
+                    <name>Диагональ (дюйм)</name>
+                    <value>6.1</value>
+                </list-item>
+                <list-item>
+                    <name>Разрешение (пикс)</name>
+                    <value>1792x828</value>
+                </list-item>
+                <list-item>
+                    <name>Встроенная память (Гб)</name>
+                    <value>256</value>
+                </list-item>
+                <list-item>
+                    <name>Цвет</name>
+                    <value>черный</value>
+                </list-item>
+            </parameters>
+        </list-item>
+        <list-item>
+            <id>4672670</id>
+            <category>Смартфоны</category>
+            <name>Смартфон Apple iPhone XR 128GB (синий)</name>
+            <price>60000</price>
+            <price_rrc>64990</price_rrc>
+            <quantity>7</quantity>
+            <parameters>
+                <list-item>
+                    <name>Диагональ (дюйм)</name>
+                    <value>6.1</value>
+                </list-item>
+                <list-item>
+                    <name>Разрешение (пикс)</name>
+                    <value>1792x828</value>
+                </list-item>
+                <list-item>
+                    <name>Встроенная память (Гб)</name>
+                    <value>256</value>
+                </list-item>
+                <list-item>
+                    <name>Цвет</name>
+                    <value>синий</value>
+                </list-item>
+            </parameters>
+        </list-item>
+    </goods>
+</root>

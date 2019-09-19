@@ -1,0 +1,16 @@
+{
+  "version": "v1.0",
+  "shop": "Связной",
+  "categories": [
+    {
+      "name": "Смартфоны"
+    },
+    {
+      "name": "Аксессуары"
+    },
+    {
+      "name": "Flash-накопители"
+    }
+  ],
+  "goods": "Some goods"
+}

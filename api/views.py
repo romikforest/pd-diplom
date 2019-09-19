@@ -6,11 +6,13 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist, Permissi
 from django.db import transaction, IntegrityError
 from django.db.models import Q, Sum, F, DecimalField
 from django.db.utils import Error as DBError, ConnectionDoesNotExist
+from django.http import HttpResponse, HttpResponseNotFound
 from django.urls import resolve
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as t
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.vary import vary_on_headers
+import os
 from rest_framework import viewsets, mixins
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, action
@@ -21,12 +23,13 @@ from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from ujson import loads as load_json
 
+
 from core.mixins import SuperSelectableMixin, ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin
 from core.models import Category, Shop, ProductInfo, Product, ProductParameter, Order, OrderItem
 from core.partner_info_loader import load_partner_info
 from core.permissions import IsShop
 from core.response import ResponseOK, ResponseCreated, ResponseBadRequest, ResponseForbidden, ResponseConflict
-from core.utils import to_positive_int
+from core.utils import to_positive_int, is_dict
 from rest_auth.models import User, ConfirmEmailToken, Contact, ADDRESS_ITEMS_LIMIT
 
 from .serializers import RegisterUserSerializer, CategorySerializer, CategoryDetailSerializer, \
@@ -35,7 +38,7 @@ from .serializers import RegisterUserSerializer, CategorySerializer, CategoryDet
     CaptchaInfoSerializer, ConfirmUserSerializer, UpdateUserDetailsSerializer, \
     ProductParameterSerializer, OrderSerializer, CreateOrderSerializer, \
     AddOrderItemSerializer, ShowBasketSerializer, OrderItemsStringSerializer, \
-    BusketSetQuantitySerializer, RetriveUserDetailsSerializer   
+    BasketSetQuantitySerializer, RetrieveUserDetailsSerializer   
 
 from .schemas import PartnerUpdateSchema, OrderCreateSchema, UserRegisterSchema
 from .signals import new_user_registered, new_order
@@ -52,7 +55,7 @@ shared_user_properties = {
     'ordering': ('last_name', 'id', ),
 
     'action_serializers': {
-        'retrieve': RetriveUserDetailsSerializer,
+        'retrieve': RetrieveUserDetailsSerializer,
         'login': UserLoginSerializer,
         'captcha': CaptchaInfoSerializer,
         'register': RegisterUserSerializer,
@@ -117,7 +120,7 @@ class BaseUserViewSet(SuperSelectableMixin,
 
     def get_serializer_class(self):
         if self.action == 'details' and self.request.method == 'GET':
-            return RetriveUserDetailsSerializer
+            return RetrieveUserDetailsSerializer
         return super(BaseUserViewSet, self).get_serializer_class()
 
     @action(detail=False, methods=('get',), name='Get reCaptcha public key',
@@ -278,10 +281,8 @@ class PartnerViewSet(BaseUserViewSet):
         if request.method == 'GET':
 
             shops = request.user.shops
-            if shops:
-                serializer = ShopSerializer(shops, context={'request': request}, many=True)
-                return ResponseOK(data=serializer.data)
-            return ResponseOK()
+            serializer = self.get_serializer_class()(shops, context={'request': request}, many=True)
+            return ResponseOK(data=serializer.data)
 
         else:
 
@@ -310,7 +311,7 @@ class PartnerViewSet(BaseUserViewSet):
                           output_field=DecimalField(max_digits=20, decimal_places=2))
         ).distinct()
 
-        serializer = OrderSerializer(order, many=True)
+        serializer = OrderSerializer(order, many=True, context={'request': request})
         return ResponseOK(data=serializer.data)
 
 
@@ -379,7 +380,7 @@ class ContactViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, 
             with transaction.atomic():
                 deleted_count = Contact.objects.filter(query).delete()[0] if objects_to_delete else 0
                 if deleted_count != objects_to_delete:
-                    raise ValidationError()
+                    raise ValidationError('Не удалось найти и удалить все указанные объекты. Операция отменена.')
         except (DBError, ValidationError, ObjectDoesNotExist, PermissionDenied, FieldError, ConnectionDoesNotExist):
             return ResponseBadRequest('Не удалось найти и удалить все указанные объекты. Операция отменена.')
 
@@ -490,13 +491,13 @@ class OrderViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, vi
     schema = OrderCreateSchema()
 
     def get_queryset(self):
-        if self.request.method == 'GET':
-            return Order.objects.filter(
-                user_id=self.request.user.id).exclude(state='basket').prefetch_related(
-                'ordered_items__product_info__product__category',
-                'ordered_items__product_info__product_parameters__parameter').select_related('contact').annotate(
-                total_sum=Sum(F('ordered_items__quantity') * F('ordered_items__product_info__price'),
-                          output_field=DecimalField(max_digits=20, decimal_places=2))).distinct()
+        # if self.request.method == 'GET':
+        return Order.objects.filter(
+            user_id=self.request.user.id).exclude(state='basket').prefetch_related(
+            'ordered_items__product_info__product__category',
+            'ordered_items__product_info__product_parameters__parameter').select_related('contact').annotate(
+            total_sum=Sum(F('ordered_items__quantity') * F('ordered_items__product_info__price'),
+                        output_field=DecimalField(max_digits=20, decimal_places=2))).distinct()
 
 
     def create(self, request, *args, **kwargs):
@@ -545,20 +546,20 @@ class BasketViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, v
         'list': ShowBasketSerializer,
         'add_items': AddOrderItemSerializer,
         'delete_goods': OrderItemsStringSerializer,
-        'set_quantity': BusketSetQuantitySerializer,
+        'set_quantity': BasketSetQuantitySerializer,
     }
 
     def get_queryset(self, *argc, **argv):
-        if self.request.method == 'GET':
-            return Order.objects.filter(
-                user_id=self.request.user.id, state='basket').prefetch_related(
-                'ordered_items__product_info__product__category',
-                'ordered_items__product_info__product_parameters__parameter').annotate(
-                total_sum=Sum(F('ordered_items__quantity') * F('ordered_items__product_info__price'),
-                            output_field=DecimalField(max_digits=20, decimal_places=2)
-                )).distinct()
-        else:
-            return super(BasketViewSet, self).get_queryset(*argc, **argv)
+        # if self.request.method == 'GET':
+        return Order.objects.filter(
+            user_id=self.request.user.id, state='basket').prefetch_related(
+            'ordered_items__product_info__product__category',
+            'ordered_items__product_info__product_parameters__parameter').annotate(
+            total_sum=Sum(F('ordered_items__quantity') * F('ordered_items__product_info__price'),
+                        output_field=DecimalField(max_digits=20, decimal_places=2)
+            )).distinct()
+        # else:
+        #     return super(BasketViewSet, self).get_queryset(*argc, **argv)
 
 
     def list(self, request, *args, **kwargs):
@@ -586,6 +587,8 @@ class BasketViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, v
                 data = serializer.validated_data
                 data.update({'order_id': basket.id})
                 data.pop('items', None)
+                if OrderItem.objects.filter(order_id=data['order_id'], product_info=data['product_info']).exists():
+                    return ResponseBadRequest('Товар уже есть в корзине')
                 try:
                     OrderItem.objects.create(**data)
                 except IntegrityError as error:
@@ -617,18 +620,16 @@ class BasketViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, v
         """
         Удалить товары из корзины
         """
-        # Метод post добавлен, чтобы можно было тестить из веб api, т.к. он не позволяет добавлять параметры в веб интерфейсе
+        # Метод post добавлен, чтобы можно было тестить из веб api, т.к. delete не позволяет добавлять параметры в веб интерфейсе
 
         items_string = request.data.get('items')
          
         if not items_string or type(items_string) != str:
-             return ResponseBadRequest('Не указаны все необходимые аргументы (Строка items_string)')
+             return ResponseBadRequest('Не указаны все необходимые аргументы (Строка items)')
 
         try:
             with transaction.atomic():
                 items_list = items_string.split(',')
-                if not items_list:
-                    return ResponseOK()
                 basket, _ = Order.objects.get_or_create(user_id=request.user.id, state='basket')
                 query = Q()
                 for order_item_id in items_list:
@@ -659,25 +660,31 @@ class BasketViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, v
             if not {'id', 'quantity'}.issubset(request.data):
                 return ResponseBadRequest('Не указаны все необходимые аргументы (items или id и quantity)')
             try:
-                items_dict = [ { 'id': int(request.data.get('id')), 'quantity': int(request.data.get('quantity')) } ]
+                items_list = [ { 'id': int(request.data.get('id')), 'quantity': int(request.data.get('quantity')) } ]
             except (ValueError, TypeError):
                 return ResponseBadRequest('Неверный формат запроса')
         else:
             try:
-                items_dict = load_json(items_string)
+                items_list = load_json(items_string)
             except ValueError:
                 return ResponseBadRequest('Неверный формат запроса')
             
         try:
             with transaction.atomic():
                 basket, _ = Order.objects.get_or_create(user_id=request.user.id, state='basket')
-                for order_item in items_dict:
-                    if type(order_item['id']) != int or type(order_item['quantity']) != int:
-                        raise ValidationError()
-                    OrderItem.objects.filter(order_id=basket.id, id=order_item['id']).update(
-                        quantity=order_item['quantity'])
+                for order_item in items_list:
+                    if not is_dict(order_item) or type(order_item.get('id')) != int or type(order_item.get('quantity')) != int:
+                        raise ValidationError('Неверный формат запроса')
+                    OrderItem.objects.filter(order_id=basket.id, id=order_item['id']).update(quantity=order_item['quantity'])
         except (DBError, ValidationError, ObjectDoesNotExist, PermissionDenied, FieldError, ConnectionDoesNotExist):
             return ResponseBadRequest('Неверный формат запроса')
 
         return ResponseOK()
 
+
+def test_url(request, ext):
+    if 'nonreal' in ext:
+        return HttpResponseNotFound('Not found')
+    with open(os.path.join(settings.MEDIA_ROOT, f'tests/shop1.{ext}'), 'rb') as fp:
+        content = fp.read()
+    return HttpResponse(content, content_type=f'application/{ext}')
