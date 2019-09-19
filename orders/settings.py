@@ -270,6 +270,23 @@ PATH_REMARKS = {
 }
 
 
+# Для отладки SQL запросов:
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'loggers': {
+#         'django.db.backends': {
+#             'level': 'DEBUG',
+#             'handlers': ['console'],
+#         }
+#     },
+# }
 
 try:
     from .settings_local import *

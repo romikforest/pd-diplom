@@ -140,4 +140,3 @@ def load_partner_info(url=None, file_obj=None, user_id=0):
                                             parameter_id=parameter_object.id,
                                             value=entry.get('value'))
     return ResponseCreated()
-  

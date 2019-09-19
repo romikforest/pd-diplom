@@ -54,25 +54,6 @@ class ContactSerializer(DefaultModelSerializer):
 class ContactBulkDeleteSerializer(DefaultSerializer):
     # items = serializers.ListField(child=serializers.IntegerField(min_value=0), write_only=True)
     items = serializers.CharField()
-        
-
-
-# class SeparateContactSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Contact
-#         fields = ('id', 'person', 'phone', 'city', 'street', 'house', 'structure', 'building', 'apartment', 'user')
-#         read_only_fields = ('id', )
-#         extra_kwargs = {
-#             'user': {'write_only': True},
-#             'person': {'default': ''},
-#             'phone': {'default': ''},
-#             'city': {'default': ''},
-#             'street': {'default': ''},
-#             'house': {'default': ''},
-#             'structure': {'default': ''},
-#             'building': {'default': ''},
-#             'apartment': {'default': ''},
-#         }
 
 
 class UserLoginSerializer(DefaultSerializer):
@@ -88,6 +69,12 @@ class CaptchaInfoSerializer(DefaultSerializer):
 
 
 class ListUserSerializer(DefaultModelSerializer):
+
+    def get_fields(self, *args, **kwargs):
+        fields = super(ListUserSerializer, self).get_fields(*args, **kwargs)
+        if self.context['view'].basename == 'partner':
+           fields['url'] = serializers.HyperlinkedIdentityField(view_name='api:partner-detail')
+        return fields
 
     class Meta:
         model = User
@@ -149,7 +136,15 @@ class RegisterUserSerializer(DefaultModelSerializer):
 
 class RetrieveUserDetailsSerializer(DefaultModelSerializer):
 
+    ContactSerializer = ModelPresenter(Contact, ('url', 'person', 'phone', 'city', 'street', 'house', 'structure', 'building', 'apartment'))
+
     contacts = ContactSerializer(many=True, required=False)
+
+    def get_fields(self, *args, **kwargs):
+        fields = super(RetrieveUserDetailsSerializer, self).get_fields(*args, **kwargs)
+        if self.context['view'].basename == 'partner':
+           fields['url'] = serializers.HyperlinkedIdentityField(view_name='api:partner-detail')
+        return fields
 
     class Meta:
         model = User
@@ -163,6 +158,7 @@ class UpdateUserDetailsSerializer(DefaultModelSerializer):
     password = serializers.CharField(write_only=True, required=True, allow_blank=False, style={'input_type': 'password'},
                                      label=t('Password'), help_text=t('Iput password'),
                                      validators=(validate_password, ))
+                        
 
     class Meta:
         model = User
@@ -222,14 +218,6 @@ class ShopSerializer(DefaultModelSerializer):
         read_only_fields = ('url', 'id', 'name', )
 
 
-# class ProductSerializer(serializers.ModelSerializer):
-#     category = CategorySerializer(read_only=True, label=t('Категория'), help_text=t('Категория товара'))
-
-#     class Meta:
-#         model = Product
-#         fields = ('id', 'name', 'category')
-
-
 class ProductParameterSerializer(DefaultModelSerializer):
     parameter = serializers.StringRelatedField(label=t('Параметр товара'), help_text=t('Параметр товара'))
 
@@ -255,37 +243,23 @@ class ProductInfoSerializer(DefaultModelSerializer):
         read_only_fields = ('url', 'id', )
 
 
-# class OrderItemSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = OrderItem
-#         fields = ('id', 'product_info', 'quantity', 'order', )
-#         read_only_fields = ('id',)
-#         extra_kwargs = {
-#             'order': {'write_only': True}
-#         }
-
-
 class AddOrderItemSerializer(DefaultModelSerializer):
     items = serializers.JSONField(required=False)
-    product_info = serializers.PrimaryKeyRelatedField(queryset=ProductInfo.objects.all())
+    product_info = serializers.PrimaryKeyRelatedField(
+        queryset=ProductInfo.objects.select_related('shop', 'product').prefetch_related('shop__user').all())
     class Meta:
         model = OrderItem
         fields = ('product_info', 'quantity', 'items', 'Errors', 'Status', )
 
 
 class ShowBasketSerializer(DefaultModelSerializer):
-    # ContactSerializer = ModelPresenter(Contact, ('url', 'person', 'phone'))
     ShopSerializer = ModelPresenter(Shop, ('id', 'url', 'name', ))
-    # ProductSerializer = ModelPresenter(Product, ('name', ))
     ProductInfoSerializer = ModelPresenter(ProductInfo, ('id', 'url', 'product', 'shop', 'price', 'price_rrc' ), {'product': serializers.StringRelatedField(), 'shop': ShopSerializer()})
     OrderedItemsSerializer = ModelPresenter(OrderItem, ('id', 'product_info', 'quantity' ), {'product_info': ProductInfoSerializer()})
 
     ordered_items = OrderedItemsSerializer(read_only=True, many=True, label=t('Заказанные товары'), help_text=t('Заказанные товары'))
 
     total_sum = serializers.DecimalField(read_only=True, max_digits=20, decimal_places=2, min_value=0, label=t('Total'), help_text=t('Общая сумма'))
-    # contact = ContactSerializer(read_only=True, label=t('Контакт'), help_text=t('Контактные данные, указанные заказчиком'))
-
-    # url = serializers.HyperlinkedIdentityField(view_name='basket-list')
 
     class Meta:
         model = Order
@@ -317,15 +291,13 @@ class BasketSetQuantitySerializer(DefaultModelSerializer):
     class KeyField(serializers.PrimaryKeyRelatedField):
         def get_queryset(self):
             if Order.objects.filter(user_id=self.context['request'].user.id, state='basket').exists():
-                return Order.objects.get(user_id=self.context['request'].user.id, state='basket').ordered_items.all()
+                return Order.objects.get(user_id=self.context['request'].user.id, state='basket').ordered_items.prefetch_related(
+                    'product_info__shop__user', 'order__user', 'product_info__product').all()
             return OrderItem.objects.none()
 
 
     id = KeyField(required=False, read_only=False, allow_null=False)
-
-    # items = serializers.ListField(child=serializers.IntegerField(min_value=0))
     items = serializers.CharField()
-    # id = serializers.IntegerField(min_value=0)
     quantity = serializers.IntegerField(min_value=0)
 
     class Meta:
@@ -337,12 +309,7 @@ class CreateOrderSerializer(DefaultModelSerializer):
 
     class KeyField(serializers.PrimaryKeyRelatedField):
         def get_queryset(self):
-            return Contact.objects.filter(user_id=self.context['request'].user.id).all()
-
-    def get_fields(self, *args, **kwargs):
-        fields = super(CreateOrderSerializer, self).get_fields(*args, **kwargs)
-        fields['contact'].queryset = self.context['request'].user.contacts
-        return fields
+            return self.context['request'].user.contacts.all()
 
     contact = KeyField(required=True, read_only=False, allow_null=False)
 

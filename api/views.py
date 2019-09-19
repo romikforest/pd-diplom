@@ -27,7 +27,7 @@ from ujson import loads as load_json
 from core.mixins import SuperSelectableMixin, ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin
 from core.models import Category, Shop, ProductInfo, Product, ProductParameter, Order, OrderItem
 from core.partner_info_loader import load_partner_info
-from core.permissions import IsShop
+from core.permissions import IsShop, IsBuyer
 from core.response import ResponseOK, ResponseCreated, ResponseBadRequest, ResponseForbidden, ResponseConflict
 from core.utils import to_positive_int, is_dict
 from rest_auth.models import User, ConfirmEmailToken, Contact, ADDRESS_ITEMS_LIMIT
@@ -60,7 +60,7 @@ shared_user_properties = {
         'captcha': CaptchaInfoSerializer,
         'register': RegisterUserSerializer,
         'confirm': ConfirmUserSerializer,
-        'details': UpdateUserDetailsSerializer,
+        'details':RetrieveUserDetailsSerializer,
         'update_info': PartnerUpdateSerializer,
         'state': ShopSerializer,
         'orders': OrderSerializer,
@@ -85,10 +85,7 @@ shared_user_properties = {
     'action_permissions': {
         'list': (IsAuthenticated, ),
         'retrieve': (IsAuthenticated, ),
-        'details': (IsAuthenticated, ),
-        'update_info': (IsAuthenticated, IsShop, ),
-        'state': (IsAuthenticated, IsShop, ),
-        'orders': (IsAuthenticated, IsShop, ),
+        'details': (IsAuthenticated, IsBuyer, ),
     },
     
 }
@@ -119,9 +116,14 @@ class BaseUserViewSet(SuperSelectableMixin,
     action_permissions = shared_user_properties.get('action_permissions', {})
 
     def get_serializer_class(self):
-        if self.action == 'details' and self.request.method == 'GET':
-            return RetrieveUserDetailsSerializer
+        if self.action == 'details' and self.request.method == 'PUT':
+            return UpdateUserDetailsSerializer
         return super(BaseUserViewSet, self).get_serializer_class()
+
+    def get_queryset(self):
+        if self.action in ('list', 'retrieve', ):
+            return User.objects.filter(type=self.user_type).all()
+        return super(BaseUserViewSet, self).get_queryset()
 
     @action(detail=False, methods=('get',), name='Get reCaptcha public key',
             url_name='captcha', url_path='captcha',
@@ -198,7 +200,7 @@ class BaseUserViewSet(SuperSelectableMixin,
         Информация об акаунте пользователя
         """
         if request.method == 'GET':
-            serializer = self.get_serializer_class()(request.user, context={'request': request})
+            serializer = self.get_serializer_class()(request.user, context={'request': request, 'view': self})
             return Response(serializer.data)
         else:
             serializer = self.get_serializer_class()(request.user, data=request.data, partial=True, context={'request': request})
@@ -248,7 +250,15 @@ class PartnerViewSet(BaseUserViewSet):
     action_throttles = shared_user_properties.get('action_throttles', {})
     action_descriptions = shared_user_properties.get('action_descriptions', {})
     action_querysets = shared_user_properties.get('action_querysets', {})
-    action_permissions = shared_user_properties.get('action_permissions', {})
+    
+    action_permissions = {
+        'list': (IsAuthenticated, ),
+        'retrieve': (IsAuthenticated, ),
+        'details': (IsAuthenticated, IsShop, ),
+        'update_info': (IsAuthenticated, IsShop, ),
+        'state': (IsAuthenticated, IsShop, ),
+        'orders': (IsAuthenticated, IsShop, ),
+    }
 
 
     @action(detail=False, methods=('post',), name='Load partner information',
@@ -290,7 +300,7 @@ class PartnerViewSet(BaseUserViewSet):
             serializer.is_valid(raise_exception=True)
             state = serializer.validated_data['state']
 
-            Shop.objects.filter(user=request.user).update(state=state)
+            Shop.objects.filter(user_id=request.user.id).update(state=state)
             return ResponseOK(state=state)
 
     @action(detail=False, methods=('get', ), name='View orders',
@@ -306,12 +316,13 @@ class PartnerViewSet(BaseUserViewSet):
         order = Order.objects.filter(
             ordered_items__product_info__shop__user_id=request.user.id).exclude(state='basket').prefetch_related(
             'ordered_items__product_info__product__category',
+            'ordered_items__product_info__shop',
             'ordered_items__product_info__product_parameters__parameter').select_related('contact').annotate(
             total_sum=Sum(F('ordered_items__quantity') * F('ordered_items__product_info__price'),
                           output_field=DecimalField(max_digits=20, decimal_places=2))
         ).distinct()
 
-        serializer = OrderSerializer(order, many=True, context={'request': request})
+        serializer = self.get_serializer_class()(order, many=True, context={'request': request})
         return ResponseOK(data=serializer.data)
 
 
@@ -424,7 +435,7 @@ class ProductParametersViewSet(viewsets.ReadOnlyModelViewSet):
     Параметры товаров
     """
 
-    queryset = ProductParameter.objects.all()
+    queryset = ProductParameter.objects.select_related('parameter').all()
     serializer_class = ProductParameterSerializer
 
     filterset_fields = ('parameter__name', 'value' )
@@ -494,6 +505,7 @@ class OrderViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, vi
         # if self.request.method == 'GET':
         return Order.objects.filter(
             user_id=self.request.user.id).exclude(state='basket').prefetch_related(
+            'ordered_items__product_info__shop',
             'ordered_items__product_info__product__category',
             'ordered_items__product_info__product_parameters__parameter').select_related('contact').annotate(
             total_sum=Sum(F('ordered_items__quantity') * F('ordered_items__product_info__price'),
@@ -504,21 +516,22 @@ class OrderViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, vi
         serializer = self.get_serializer_class()(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+        user_id = request.user.id
         try:
-            order = Order.objects.get(user_id=request.user.id, state='basket')
+            order = Order.objects.get(user_id=user_id, state='basket')
         except:
             return ResponseConflict('Корзина пуста')
 
         try:
             is_updated = Order.objects.filter(
-                user_id=request.user.id, id=order.id).update(
+                user_id=user_id, id=order.id).update(
                 contact_id=data['contact'],
                 state='new')
         except IntegrityError as error:
             return ResponseBadRequest('Неправильно указаны аргументы')
         else:
             if is_updated:
-                new_order.send(sender=self.__class__, user_id=request.user.id)
+                new_order.send(sender=self.__class__, user_id=user_id)
                 return ResponseOK()
 
         return ResponseBadRequest('Не указаны все необходимые аргументы')
@@ -553,6 +566,7 @@ class BasketViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, v
         # if self.request.method == 'GET':
         return Order.objects.filter(
             user_id=self.request.user.id, state='basket').prefetch_related(
+            'ordered_items__product_info__shop',
             'ordered_items__product_info__product__category',
             'ordered_items__product_info__product_parameters__parameter').annotate(
             total_sum=Sum(F('ordered_items__quantity') * F('ordered_items__product_info__price'),
@@ -581,18 +595,18 @@ class BasketViewSet(ViewSetViewSerializersMixin, ViewSetViewDescriptionsMixin, v
         def create_items(items):
             basket, _ = Order.objects.get_or_create(user_id=request.user.id, state='basket')
 
+            instances = []
             for order_item in items:
                 serializer = self.get_serializer_class()(data=order_item)
                 serializer.is_valid(raise_exception=True)
                 data = serializer.validated_data
                 data.update({'order_id': basket.id})
                 data.pop('items', None)
-                if OrderItem.objects.filter(order_id=data['order_id'], product_info=data['product_info']).exists():
-                    return ResponseBadRequest('Товар уже есть в корзине')
-                try:
-                    OrderItem.objects.create(**data)
-                except IntegrityError as error:
-                    raise ValueError(error)
+                instances.append(OrderItem(**data))
+            try:
+                OrderItem.objects.bulk_create(instances)
+            except IntegrityError:
+                return ResponseBadRequest('Товар уже есть в корзине')
             return ResponseOK()
             
         items_string = request.data.get('items')
