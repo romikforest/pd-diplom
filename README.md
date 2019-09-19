@@ -99,7 +99,7 @@ html документацию, просматривать ее в браузер
 Доступны также автоматические swagger и redoc документация:
 
     http://127.0.0.1:8000/api/v1/swagger-ui
-    http://127.0.0.1:8000/api/v1/redoc#operation/ListUsers
+    http://127.0.0.1:8000/api/v1/redoc
 
 API также опубликовано на сервере POSTMAN:
 
